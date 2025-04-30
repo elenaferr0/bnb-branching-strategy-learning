@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import requests
 import zipfile
 import os
 import pandas as pd
+import shutil
 from tqdm import tqdm
 
 
@@ -32,8 +35,8 @@ def extract_zip(zip_file_path, extract_path = None):
     try:
         os.makedirs(extract_path, exist_ok=True)
         with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-            print(os.path.dirname(zip_file_path))
             zip_ref.extractall(extract_path if extract_path else os.path.dirname(zip_file_path))
+            return True
     except Exception as e:
         print(f"Error extracting {zip_file_path}: {e}")
         return False
@@ -50,33 +53,46 @@ def create_filtered_instances_zip(df: pd.DataFrame, instances_path: str, zip_pat
         print(f"File {zip_path} already exists. Skipping creation.")
         return
 
-    # Take all the file names in df and create a zip file with them
-    with zipfile.ZipFile(zip_path, 'w') as zipf:
-        for index, row in df.iterrows():
-            file_name = row['Instance']
-            file_path = os.path.join(instances_path, file_name)
-            if os.path.exists(file_path):
-                zipf.write(file_path, arcname=file_name)
-    print(f"Created {zip_path} with {len(df)} instances of size {os.path.getsize(zip_path)} bytes.")
+    temp_dir = Path(zip_path).with_suffix(".tmp")
+    if os.path.exists(temp_dir):
+        shutil.rmtree(temp_dir)
+    os.makedirs(temp_dir)
+    for i, row in df.iterrows():
+        file = os.path.join(instances_path, f"{row['Instance']}.mps.gz")
+        if os.path.exists(file):
+            shutil.copy2(file, temp_dir)
 
-def prepare_data(zip_url: str, zip_path: str, csv_path: str, filtered_zip_path: str):
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(temp_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                arc_name = os.path.relpath(file_path, temp_dir)
+                zipf.write(file_path, arcname=arc_name)
+
+    shutil.rmtree(temp_dir, ignore_errors=True)
+    print(f"Created {zip_path} with {len(df)} instances of size {os.path.getsize(zip_path) / 1024.0}MB.")
+
+def prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered_zip_path: str):
     # if filtered zip already exists, skip download and load from it
+    if os.path.exists(filtered_zip_path.replace(".zip", "")):
+        print(f"Directory {filtered_zip_path.replace('.zip', '')} already exists. Skipping extraction.")
+        return os.listdir(os.path.dirname(filtered_zip_path))
+
     if os.path.exists(filtered_zip_path):
         print(f"File {filtered_zip_path} already exists. Loading from it.")
         extract_zip(filtered_zip_path, filtered_zip_path.replace('.zip', ''))
         return os.listdir(os.path.dirname(filtered_zip_path))
 
-    if (not download_file(zip_url, zip_path) or not extract_zip(zip_path, os.path.dirname(zip_path))):
-        return
+    if not download_file(zip_url, zip_path) or not extract_zip(zip_path, os.path.dirname(zip_path)):
+        return []
 
     # os.remove(zip_path)
     instances = filter_easy_binary_problems(csv_path)
     print(f"Found {len(instances)} easy binary problems in {csv_path}")
 
     # Re-zip instances for easier portability
-    create_filtered_instances_zip(instances, os.path.dirname(zip_path), filtered_zip_path)
+    create_filtered_instances_zip(instances, zip_path.replace(".zip", ""), filtered_zip_path)
     return instances
-
 
 def prepare_miplib_data():
     # collection is bigger and will be used for training (133 instances)
@@ -84,15 +100,14 @@ def prepare_miplib_data():
     collection_zip_path = "dataset/collection.zip"
     collection_csv = "dataset/collection_set.csv"
     filtered_collection_zip_path = "dataset/filtered_collection.zip"
-    collection_instances = prepare_data(collection_url, collection_zip_path, collection_csv, filtered_collection_zip_path)
+    collection_instances = prepare_filtered_data(collection_url, collection_zip_path, collection_csv, filtered_collection_zip_path)
 
     # benchmark will be used for testing (39 instances)
     benchmark_url = "https://miplib.zib.de/downloads/benchmark.zip"
     benchmark_zip_path = "dataset/benchmark.zip"
     benchmark_csv = "dataset/benchmark_set.csv"
     filtered_benchmark_zip_path = "dataset/filtered_benchmark.zip"
-    benchmark_instances = prepare_data(benchmark_url, benchmark_zip_path, benchmark_csv, filtered_benchmark_zip_path)
-
+    benchmark_instances = prepare_filtered_data(benchmark_url, benchmark_zip_path, benchmark_csv, filtered_benchmark_zip_path)
 
 if __name__ == "__main__":
     prepare_miplib_data()
