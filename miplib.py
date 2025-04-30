@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import requests
+import requests, gzip
 import zipfile
 import os
 import pandas as pd
@@ -27,7 +27,7 @@ def download_file(url, local_filename, chunk_size=1024):
         return False
 
 
-def extract_zip(zip_file_path, extract_path = None):
+def extract_zip(zip_file_path, extract_path=None):
     if extract_path is not None and os.path.exists(extract_path):
         print(f"Directory {extract_path} already exists. Skipping extraction.")
         return True
@@ -72,6 +72,7 @@ def create_filtered_instances_zip(df: pd.DataFrame, instances_path: str, zip_pat
     shutil.rmtree(temp_dir, ignore_errors=True)
     print(f"Created {zip_path} with {len(df)} instances of size {os.path.getsize(zip_path) / 1024.0}MB.")
 
+
 def prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered_zip_path: str):
     # if filtered zip already exists, skip download and load from it
     if os.path.exists(filtered_zip_path.replace(".zip", "")):
@@ -94,20 +95,43 @@ def prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered_z
     create_filtered_instances_zip(instances, zip_path.replace(".zip", ""), filtered_zip_path)
     return instances
 
+
+def extract_gz(parent_path: str):
+    print("Extracting gz files in " + parent_path)
+    try:
+        for root, _, files in os.walk(parent_path):
+            for file in files:
+                if not file.endswith('.gz'):
+                    continue
+                gz_path = os.path.join(root, file)
+                with gzip.open(gz_path, 'rb') as f_in:
+                    out_path = gz_path.replace('.gz', '')
+                    with open(out_path, 'wb') as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                os.remove(gz_path)
+    except Exception as e:
+        print(f"Error extracting gz files in {parent_path}: {e}")
+
+
 def prepare_miplib_data():
     # collection is bigger and will be used for training (133 instances)
     collection_url = "https://miplib.zib.de/downloads/collection.zip"
     collection_zip_path = "dataset/collection.zip"
     collection_csv = "dataset/collection_set.csv"
     filtered_collection_zip_path = "dataset/filtered_collection.zip"
-    collection_instances = prepare_filtered_data(collection_url, collection_zip_path, collection_csv, filtered_collection_zip_path)
+    prepare_filtered_data(collection_url, collection_zip_path, collection_csv,
+                          filtered_collection_zip_path)
+    extract_gz(filtered_collection_zip_path.replace(".zip", ""))
 
     # benchmark will be used for testing (39 instances)
     benchmark_url = "https://miplib.zib.de/downloads/benchmark.zip"
     benchmark_zip_path = "dataset/benchmark.zip"
     benchmark_csv = "dataset/benchmark_set.csv"
     filtered_benchmark_zip_path = "dataset/filtered_benchmark.zip"
-    benchmark_instances = prepare_filtered_data(benchmark_url, benchmark_zip_path, benchmark_csv, filtered_benchmark_zip_path)
+    prepare_filtered_data(benchmark_url, benchmark_zip_path, benchmark_csv,
+                          filtered_benchmark_zip_path)
+    extract_gz(filtered_benchmark_zip_path.replace(".zip", ""))
+
 
 if __name__ == "__main__":
     prepare_miplib_data()
