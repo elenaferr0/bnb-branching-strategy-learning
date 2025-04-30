@@ -6,7 +6,7 @@ import os
 import pandas as pd
 import shutil
 from tqdm import tqdm
-
+from pysmps import smps_loader as smps
 
 def download_file(url, local_filename, chunk_size=1024):
     if os.path.exists(local_filename):
@@ -112,25 +112,30 @@ def extract_gz(parent_path: str):
     except Exception as e:
         print(f"Error extracting gz files in {parent_path}: {e}")
 
+def load_mps_files(path: str):
+    name, _, _, _, _, types, c, A, _, rhs, _, bnd = smps.load_mps(path)
+
 
 def prepare_miplib_data():
-    # collection is bigger and will be used for training (133 instances)
+    # 133 instances
     collection_url = "https://miplib.zib.de/downloads/collection.zip"
-    collection_zip_path = "dataset/collection.zip"
-    collection_csv = "dataset/collection_set.csv"
-    filtered_collection_zip_path = "dataset/filtered_collection.zip"
+    collection_zip_path = "miplib/collection.zip"
+    collection_csv = "miplib/collection_set.csv"
+    filtered_collection_zip_path = "miplib/filtered_collection.zip"
     prepare_filtered_data(collection_url, collection_zip_path, collection_csv,
                           filtered_collection_zip_path)
     extract_gz(filtered_collection_zip_path.replace(".zip", ""))
 
-    # benchmark will be used for testing (39 instances)
+    # 39 instances
     benchmark_url = "https://miplib.zib.de/downloads/benchmark.zip"
-    benchmark_zip_path = "dataset/benchmark.zip"
-    benchmark_csv = "dataset/benchmark_set.csv"
-    filtered_benchmark_zip_path = "dataset/filtered_benchmark.zip"
+    benchmark_zip_path = "miplib/benchmark.zip"
+    benchmark_csv = "miplib/benchmark_set.csv"
+    filtered_benchmark_zip_path = "miplib/filtered_benchmark.zip"
     prepare_filtered_data(benchmark_url, benchmark_zip_path, benchmark_csv,
                           filtered_benchmark_zip_path)
     extract_gz(filtered_benchmark_zip_path.replace(".zip", ""))
+
+    load_mps_files("miplib/filtered_benchmark/qap10.mps")
 
 
 if __name__ == "__main__":
