@@ -24,15 +24,16 @@ def download_file(url, local_filename, chunk_size=1024):
         return False
 
 
-def extract_zip(zip_file_path, extract_path):
-    if os.path.exists(extract_path):
+def extract_zip(zip_file_path, extract_path = None):
+    if extract_path is not None and os.path.exists(extract_path):
         print(f"Directory {extract_path} already exists. Skipping extraction.")
         return True
 
     try:
+        os.makedirs(extract_path, exist_ok=True)
         with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-            zip_ref.extractall(extract_path)
-            return True
+            print(os.path.dirname(zip_file_path))
+            zip_ref.extractall(extract_path if extract_path else os.path.dirname(zip_file_path))
     except Exception as e:
         print(f"Error extracting {zip_file_path}: {e}")
         return False
@@ -56,34 +57,41 @@ def create_filtered_instances_zip(df: pd.DataFrame, instances_path: str, zip_pat
             file_path = os.path.join(instances_path, file_name)
             if os.path.exists(file_path):
                 zipf.write(file_path, arcname=file_name)
+    print(f"Created {zip_path} with {len(df)} instances of size {os.path.getsize(zip_path)} bytes.")
+
+def prepare_data(zip_url: str, zip_path: str, csv_path: str, filtered_zip_path: str):
+    # if filtered zip already exists, skip download and load from it
+    if os.path.exists(filtered_zip_path):
+        print(f"File {filtered_zip_path} already exists. Loading from it.")
+        extract_zip(filtered_zip_path, filtered_zip_path.replace('.zip', ''))
+        return os.listdir(os.path.dirname(filtered_zip_path))
+
+    if (not download_file(zip_url, zip_path) or not extract_zip(zip_path, os.path.dirname(zip_path))):
+        return
+
+    # os.remove(zip_path)
+    instances = filter_easy_binary_problems(csv_path)
+    print(f"Found {len(instances)} easy binary problems in {csv_path}")
+
+    # Re-zip instances for easier portability
+    create_filtered_instances_zip(instances, os.path.dirname(zip_path), filtered_zip_path)
+    return instances
+
 
 def prepare_miplib_data():
+    # collection is bigger and will be used for training (133 instances)
     collection_url = "https://miplib.zib.de/downloads/collection.zip"
-    benchmark_url = "https://miplib.zib.de/downloads/benchmark.zip"
     collection_zip_path = "dataset/collection.zip"
+    collection_csv = "dataset/collection_set.csv"
+    filtered_collection_zip_path = "dataset/filtered_collection.zip"
+    collection_instances = prepare_data(collection_url, collection_zip_path, collection_csv, filtered_collection_zip_path)
+
+    # benchmark will be used for testing (39 instances)
+    benchmark_url = "https://miplib.zib.de/downloads/benchmark.zip"
     benchmark_zip_path = "dataset/benchmark.zip"
-    collection_extract_path = "dataset/collection"
-    benchmark_extract_path = "dataset/benchmark"
-
-    if not download_file(collection_url, collection_zip_path) or not extract_zip(collection_zip_path,
-                                                                                 collection_extract_path):
-        return
-    # os.remove(collection_zip_path)
-
-    if not download_file(benchmark_url, benchmark_zip_path) or not extract_zip(benchmark_zip_path,
-                                                                               benchmark_extract_path):
-        return
-    # os.remove(benchmark_zip_path)
-
-    collection_csv_path = os.path.join("dataset", "collection_set.csv")
-    c = filter_easy_binary_problems(collection_csv_path)
-    print(f"Found {len(c)} easy binary problems in collection set")
-    create_filtered_instances_zip(c, collection_extract_path, "dataset/filtered_collection.zip")
-
-    benchmark_csv_path = os.path.join("dataset", "benchmark_set.csv")
-    b = filter_easy_binary_problems(benchmark_csv_path)
-    print(f"Found {len(b)} easy binary problems in benchmark set")
-    create_filtered_instances_zip(b, benchmark_extract_path, "dataset/filtered_benchmark.zip")
+    benchmark_csv = "dataset/benchmark_set.csv"
+    filtered_benchmark_zip_path = "dataset/filtered_benchmark.zip"
+    benchmark_instances = prepare_data(benchmark_url, benchmark_zip_path, benchmark_csv, filtered_benchmark_zip_path)
 
 
 if __name__ == "__main__":
