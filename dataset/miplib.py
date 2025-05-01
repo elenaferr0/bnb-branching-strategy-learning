@@ -8,6 +8,7 @@ import shutil
 from tqdm import tqdm
 from pysmps import smps_loader as smps
 
+
 def download_file(url, local_filename, chunk_size=1024):
     if os.path.exists(local_filename):
         print(f"File {local_filename} already exists. Skipping download.")
@@ -42,9 +43,9 @@ def extract_zip(zip_file_path, extract_path=None):
         return False
 
 
-def filter_easy_binary_problems(csv: str) -> pd.DataFrame:
+def filter_instances(csv: str) -> pd.DataFrame:
     df = pd.read_csv(csv)
-    filtered_df = df[(df['Integers'] == 0) & (df['Continuous'] == 0) & (df['Status'] == 'easy')]
+    filtered_df = df[(df['Integers'] == 0) & (df['Continuous'] == 0) & (df['Variables'] <= 1000)]
     return filtered_df
 
 
@@ -63,11 +64,11 @@ def create_filtered_instances_zip(df: pd.DataFrame, instances_path: str, zip_pat
             shutil.copy2(file, temp_dir)
 
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for root, _, files in os.walk(temp_dir):
-            for file in files:
-                file_path = os.path.join(root, file)
-                arc_name = os.path.relpath(file_path, temp_dir)
-                zipf.write(file_path, arcname=arc_name)
+        files = os.listdir(temp_dir)
+        for file in tqdm(files, desc="Creating filtered files zip"):
+            file_path = os.path.join(temp_dir, file)
+            arc_name = os.path.relpath(file_path, temp_dir)
+            zipf.write(file_path, arcname=arc_name)
 
     shutil.rmtree(temp_dir, ignore_errors=True)
     print(f"Created {zip_path} with {len(df)} instances of size {os.path.getsize(zip_path) / 1024.0}MB.")
@@ -75,20 +76,21 @@ def create_filtered_instances_zip(df: pd.DataFrame, instances_path: str, zip_pat
 
 def prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered_zip_path: str):
     # if filtered zip already exists, skip download and load from it
-    if os.path.exists(filtered_zip_path.replace(".zip", "")):
-        print(f"Directory {filtered_zip_path.replace('.zip', '')} already exists. Skipping extraction.")
-        return os.listdir(os.path.dirname(filtered_zip_path))
+    filtered_dir = filtered_zip_path.replace(".zip", "")
+    if os.path.exists(filtered_dir):
+        print(f"Directory {filtered_dir} already exists. Skipping extraction.")
+        return os.listdir(filtered_dir)
 
     if os.path.exists(filtered_zip_path):
         print(f"File {filtered_zip_path} already exists. Loading from it.")
         extract_zip(filtered_zip_path, filtered_zip_path.replace('.zip', ''))
-        return os.listdir(os.path.dirname(filtered_zip_path))
+        return os.listdir(filtered_dir)
 
     if not download_file(zip_url, zip_path) or not extract_zip(zip_path, os.path.dirname(zip_path)):
         return []
 
     # os.remove(zip_path)
-    instances = filter_easy_binary_problems(csv_path)
+    instances = filter_instances(csv_path)
     print(f"Found {len(instances)} easy binary problems in {csv_path}")
 
     # Re-zip instances for easier portability
@@ -97,46 +99,43 @@ def prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered_z
 
 
 def extract_gz(parent_path: str):
-    print("Extracting gz files in " + parent_path)
     try:
-        for root, _, files in os.walk(parent_path):
-            for file in files:
-                if not file.endswith('.gz'):
-                    continue
-                gz_path = os.path.join(root, file)
-                with gzip.open(gz_path, 'rb') as f_in:
-                    out_path = gz_path.replace('.gz', '')
-                    with open(out_path, 'wb') as f_out:
-                        shutil.copyfileobj(f_in, f_out)
-                os.remove(gz_path)
+        files = os.listdir(parent_path)
+        for file in tqdm(files, desc="Extracting gz files"):
+            if not file.endswith('.gz'):
+                continue
+            gz_path = os.path.join(parent_path, file)
+            out_path = gz_path.replace('.gz', '')
+            with gzip.open(gz_path, 'rb') as f_in, open(out_path, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+            os.remove(gz_path)
+        print("Extracted gz files in " + parent_path)
     except Exception as e:
         print(f"Error extracting gz files in {parent_path}: {e}")
 
-def load_mps_files(path: str):
+
+def load_mps(path: str):
     name, _, _, _, _, types, c, A, _, rhs, _, bnd = smps.load_mps(path)
+    return {
+        "name": name,
+        "types": types,
+        "c": c,
+        "A": A,
+        "rhs": rhs,
+        "bnd": bnd
+    }
 
 
 def prepare_miplib_data():
-    # 133 instances
-    collection_url = "https://miplib.zib.de/downloads/collection.zip"
-    collection_zip_path = "miplib/collection.zip"
-    collection_csv = "miplib/collection_set.csv"
-    filtered_collection_zip_path = "miplib/filtered_collection.zip"
-    prepare_filtered_data(collection_url, collection_zip_path, collection_csv,
-                          filtered_collection_zip_path)
-    extract_gz(filtered_collection_zip_path.replace(".zip", ""))
-
-    # 39 instances
-    benchmark_url = "https://miplib.zib.de/downloads/benchmark.zip"
-    benchmark_zip_path = "miplib/benchmark.zip"
-    benchmark_csv = "miplib/benchmark_set.csv"
-    filtered_benchmark_zip_path = "miplib/filtered_benchmark.zip"
-    prepare_filtered_data(benchmark_url, benchmark_zip_path, benchmark_csv,
-                          filtered_benchmark_zip_path)
-    extract_gz(filtered_benchmark_zip_path.replace(".zip", ""))
-
-    load_mps_files("miplib/filtered_benchmark/qap10.mps")
+    url = "https://miplib.zib.de/downloads/collection.zip"
+    zip_path = "dataset/miplib/collection.zip"
+    csv = "dataset/miplib/collection_set.csv"
+    filtered_path = "dataset/miplib/filtered_collection"
+    instances = prepare_filtered_data(url, zip_path, csv, f"{filtered_path}.zip")
+    extract_gz(filtered_path)
+    return [load_mps(f"{filtered_path}/{i}") for i in tqdm(instances, desc="Loading mps files")]
 
 
 if __name__ == "__main__":
-    prepare_miplib_data()
+    a = prepare_miplib_data()
+    print(a[0])
