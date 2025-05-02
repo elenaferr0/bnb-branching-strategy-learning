@@ -14,7 +14,7 @@ A_DENSITY = 0.3
 
 
 def set_cover(n_problems: int, max_sets: int, max_elements: int):
-    return [__generate_problem(1, max_sets, max_elements) for i in range(n_problems)]
+    return [__generate_problem(i, max_sets, max_elements) for i in range(n_problems)]
 
 
 def __generate_problem(id: int, max_sets: int, max_elements: int):

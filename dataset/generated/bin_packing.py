@@ -22,7 +22,7 @@ s.t.
 
 
 def bin_packing(n_problems: int, max_items: int, max_bins: int, max_bin_capacity: float, max_item_size: float):
-    return [__generate_problem(1, max_items, max_bins, max_bin_capacity, max_item_size) for _ in range(n_problems)]
+    return [__generate_problem(i, max_items, max_bins, max_bin_capacity, max_item_size) for i in range(n_problems)]
 
 
 def __generate_problem(id: int, max_items: int, max_bins: int, max_bin_capacity: float, max_item_size: float):
