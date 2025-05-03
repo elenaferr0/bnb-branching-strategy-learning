@@ -1,4 +1,3 @@
-import random
 import numpy as np
 
 """
@@ -10,18 +9,23 @@ s.t.
     x_ij in {0, 1} forall j in N_i, forall i
 """
 
-def multi_knapsack(n_problems: int, max_items: int, max_knapsacks: int, max_knapsack_capacity: float, max_item_profit: float, max_item_weight: float):
-    return [__generate_problem(i, max_items, max_knapsacks, max_knapsack_capacity, max_item_profit, max_item_weight) for i in range(n_problems)]
 
-def __generate_problem(id: int, max_items: int, max_knapsacks: int, max_knapsack_capacity: float, max_item_profit: float, max_item_weight: float):
-    n_knapsacks = random.randint(1, max_knapsacks)
-    n_items = random.randint(1, max_items)
-    knapsack_capacities = np.random.uniform(1, max_knapsack_capacity, n_knapsacks)
-    item_profits = np.random.uniform(1, max_item_profit, n_items)
-    item_weights = np.random.uniform(1, max_item_weight, n_items)
+def multi_knapsack(n_problems: int, items: (int, int), knapsacks: (int, int), knapsack_capacity: (float, float),
+                   item_profit: (float, float), item_weight: (float, float)):
+    return [__generate_problem(i, items, knapsacks, knapsack_capacity, item_profit, item_weight) for
+            i in range(n_problems)]
 
-    n_vars = n_items * n_knapsacks # x_ij
-    c = -np.tile(item_profits, n_knapsacks) # convert to minimiz. problem
+
+def __generate_problem(id: int, items: (int, int), knapsacks: (int, int), knapsack_capacity: (float, float),
+                   item_profit: (float, float), item_weight: (float, float)):
+    n_knapsacks = np.random.randint(*knapsacks)
+    n_items = np.random.randint(*items)
+    knapsack_capacities = np.random.uniform(*knapsack_capacity, n_knapsacks)
+    item_profits = np.random.uniform(*item_profit, n_items)
+    item_weights = np.random.uniform(*item_weight, n_items)
+
+    n_vars = n_items * n_knapsacks  # x_ij
+    c = -np.tile(item_profits, n_knapsacks)  # convert to minimiz. problem
 
     A, b, types = [], [], []
 

@@ -1,4 +1,3 @@
-import random
 from itertools import combinations
 
 import numpy as np
@@ -17,14 +16,12 @@ s.t.
 """
 
 
-def traveling_salesman(n_problems: int, max_cities: int):
-    return [__generate_problem(i, max_cities) for i in range(n_problems)]
+def traveling_salesman(n_problems: int, cities: (int, int)):
+    return [__generate_problem(i, cities) for i in range(n_problems)]
 
 
-def __generate_problem(id: int, max_cities: int):
-    if max_cities < 3:
-        raise ValueError("max_cities must be at least 3")
-    n_cities = random.randint(3, max_cities)
+def __generate_problem(id: int, cities: (int, int)):
+    n_cities = np.random.randint(*cities)
 
     # symmetric cost matrix
     costs = np.random.randint(1, 100, size=(n_cities, n_cities))
