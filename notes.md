@@ -18,6 +18,7 @@
 - useful: https://www.ibm.com/docs/en/cofz/12.9.0?topic=optimizer-selecting-variables 
 - MKP instances: https://www.researchgate.net/publication/271198281_Benchmark_instances_for_the_Multidimensional_Knapsack_Problem
 - B&B strong branching scores: https://community.ibm.com/community/user/discussion/strong-branching-score-at-each-branch-and-bound-node?hlmlt=VT 
+- callback:https://github.com/IBMDecisionOptimization/docplex-examples/blob/master/examples/mp/callbacks/branch_callback.py
 # References
 - MIPLIB: 
   - Achterberg, T., Koch, T., Martin, A.: Miplib 2003. Operations Research Letters 34(4), 361–372 (2006) 

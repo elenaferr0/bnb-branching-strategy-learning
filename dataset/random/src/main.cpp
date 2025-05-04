@@ -1,8 +1,16 @@
 #include <iostream>
 #include <cstdlib> // For atoi
+#include <ilcplex/cpxconst.h>
+
+#include "cpxmacro.h"
 #include "problems/bin_packing.h"
 #include "problems/multi_knapsack.h"
 #include "problems/set_cover.h"
+
+struct StrongBranchingScore {
+    int var_index;
+    double score;
+};
 
 int main(int argc, char *argv[]) {
     // if (argc != 2) {
@@ -22,16 +30,16 @@ int main(int argc, char *argv[]) {
     // return 0;
 
     constexpr int n_problems = 5;
-    //
-    // // Set cover
-    // constexpr std::pair<int, int> sets = {100, 300};
-    // constexpr std::pair<int, int> elements = {100, 400};
-    // const std::vector<Problem> sc = set_cover(n_problems, sets, elements);
-    // for (const auto &problem: sc) {
-    //     problem.export_bin("out/set_cover");
-    // }
-    // std::cout << "Generated " << sc.size() << "/" << n_problems << " SC problems" << std::endl;
-    //
+
+    // Set cover
+    constexpr std::pair<int, int> sets = {100, 300};
+    constexpr std::pair<int, int> elements = {100, 400};
+    const std::vector<Problem> sc = set_cover(n_problems, sets, elements);
+    for (const auto &problem: sc) {
+        problem.export_bin("out/set_cover");
+    }
+    std::cout << "Generated " << sc.size() << "/" << n_problems << " SC problems" << std::endl;
+
     // // Bin packing
     // constexpr std::pair<int, int> items = {5, 30};
     // constexpr std::pair<int, int> bins = {3, 9};
@@ -44,15 +52,15 @@ int main(int argc, char *argv[]) {
     // std::cout << "Generated " << bp.size() << "/" << n_problems << " BP problems" << std::endl;
 
     // Multiple knapsack
-    constexpr std::pair<int, int> items_kp = {70, 150};
-    constexpr std::pair<int, int> knapsacks = {10, 20};
-    constexpr std::pair<double, double> knapsack_capacity = {100.0, 150.0};
-    constexpr std::pair<double, double> item_profit = {10.0, 100.0};
-    constexpr std::pair<double, double> item_weight = {5.0, 30.0};
-    const std::vector<Problem> kp = multi_knapsack(n_problems, items_kp, knapsacks, knapsack_capacity, item_profit,
-                                                   item_weight);
-    for (const auto &problem: kp) {
-        problem.export_bin("out/multi_knapsack");
-    }
-    std::cout << "Generated " << kp.size() << "/" << n_problems << " KP problems" << std::endl;
+    // constexpr std::pair<int, int> items_kp = {70, 150};
+    // constexpr std::pair<int, int> knapsacks = {10, 20};
+    // constexpr std::pair<double, double> knapsack_capacity = {100.0, 150.0};
+    // constexpr std::pair<double, double> item_profit = {10.0, 100.0};
+    // constexpr std::pair<double, double> item_weight = {5.0, 30.0};
+    // const std::vector<Problem> kp = multi_knapsack(n_problems, items_kp, knapsacks, knapsack_capacity, item_profit,
+    //                                                item_weight);
+    // for (const auto &problem: kp) {
+    //     problem.export_bin("out/multi_knapsack");
+    // }
+    // std::cout << "Generated " << kp.size() << "/" << n_problems << " KP problems" << std::endl;
 }

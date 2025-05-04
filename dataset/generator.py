@@ -1,9 +1,9 @@
 import numpy as np
 
-from .random_probs.bin_packing import bin_packing
-from .random_probs.set_cover import set_cover
-from .random_probs.traveling_salesman import traveling_salesman
-from .random_probs.multi_knapsack import multi_knapsack
+from .generated.bin_packing import bin_packing
+from .generated.set_cover import set_cover
+from .generated.traveling_salesman import traveling_salesman
+from .generated.multi_knapsack import multi_knapsack
 
 
 def generate_datasets(set_cover_instances: int, bin_packing_instances: int, multi_knapsack_instances: int,
