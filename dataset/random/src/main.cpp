@@ -21,19 +21,19 @@ int main(int argc, char *argv[]) {
     //
     // return 0;
 
-    constexpr int n_problems = 15;
+    constexpr int n_problems = 5;
 
     // Set cover
-    // constexpr std::pair<int, int> sets = {100, 300};
-    // constexpr std::pair<int, int> elements = {50, 400};
-    // const std::vector<Problem> sc = set_cover(n_problems, sets, elements);
+    constexpr std::pair<int, int> sets = {100, 300};
+    constexpr std::pair<int, int> elements = {100, 400};
+    const std::vector<Problem> sc = set_cover(n_problems, sets, elements);
 
     // // Bin packing
-    constexpr std::pair<int, int> items = {5, 30};
-    constexpr std::pair<int, int> bins = {3, 9};
-    constexpr std::pair<double, double> bin_capacity = {10.0, 20.0};
-    constexpr std::pair<double, double> item_size = {1.0, 5.0};
-    const std::vector<Problem> bp = bin_packing(n_problems, items, bins, bin_capacity, item_size);
+    // constexpr std::pair<int, int> items = {5, 30};
+    // constexpr std::pair<int, int> bins = {3, 9};
+    // constexpr std::pair<double, double> bin_capacity = {10.0, 20.0};
+    // constexpr std::pair<double, double> item_size = {1.0, 5.0};
+    // const std::vector<Problem> bp = bin_packing(n_problems, items, bins, bin_capacity, item_size);
 
     // // Multiple knapsack
     // constexpr std::pair<int, int> items_kp = {100, 300};

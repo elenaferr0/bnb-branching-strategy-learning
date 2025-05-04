@@ -20,14 +20,17 @@ Problem generate_problem(const int id, const std::pair<int, int> &sets, const st
     }
 
     // Ensure each element is covered by at least one set
-    for (int j = 0; j < n_sets; ++j) {
-        double sum_of_column = 0;
-        for (int i = 0; i < n_elements; ++i) {
-            sum_of_column += A[i][j];
-        }
-        if (sum_of_column == 0) {
-            const int i = generate_random_int(0, n_elements - 1);
-            A[i][j] = 1;
+    for (int i = 0; i < n_elements; ++i) {
+        const int covering_set_index = generate_random_int(0, n_sets - 1);
+        A[i][covering_set_index] = 1;
+    }
+
+    // adding more random values
+    for (int i = 0; i < n_elements; ++i) {
+        for (int j = 0; j < n_sets; ++j) {
+            if (A[i][j] == 0 && generate_random_double(0.0, 1.0) < A_DENSITY) {
+                A[i][j] = 1;
+            }
         }
     }
 

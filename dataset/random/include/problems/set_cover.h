@@ -5,7 +5,7 @@
 
 #include "utils.h"
 
-constexpr double A_DENSITY = 0.3;
+constexpr double A_DENSITY = 0.5;
 
 Problem generate_problem(int id, const std::pair<int, int> &sets, const std::pair<int, int> &elements);
 std::vector<Problem> set_cover(int n_problems, const std::pair<int, int> &sets, const std::pair<int, int> &elements);

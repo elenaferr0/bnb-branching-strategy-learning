@@ -24,7 +24,7 @@ void solve(Problem &problem) {
     DECL_ENV(env);
     DECL_PROB(env, lp, problem.name.c_str());
     // Set time limit
-    CHECKED_CPX_CALL(CPXsetdblparam, env, CPX_PARAM_TILIM, 10);
+    CHECKED_CPX_CALL(CPXsetdblparam, env, CPX_PARAM_TILIM, 5);
 
     // add variables
     const size_t n_vars = problem.c.size();
@@ -67,7 +67,7 @@ void solve(Problem &problem) {
         std::cout << "Objective function value: " << problem.solution.obj_val << std::endl;
     } else {
         // throw std::runtime_error("No optimal solution found for problem: " + problem.name);
-        std::cerr << "No optimal solution for " + problem.name;
+        std::cerr << "No optimal solution for " + problem.name << std::endl;
         return;
     }
 
