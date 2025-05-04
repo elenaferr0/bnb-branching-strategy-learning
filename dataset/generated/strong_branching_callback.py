@@ -154,14 +154,6 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
                 return current_obj, current_obj
 
     def report(self, n=5):
-        """Report statistics on the most frequently branched variables."""
-        sorted_stats = sorted(self.stats.items(), key=lambda p: p[1], reverse=True)
-        print(f"\nStrong Branching Report - Called {self.nb_called} times")
-        print("-" * 40)
-        for k, (dv, occ) in enumerate(sorted_stats[:n], start=1):
-            print(f'#{k} most branched: {dv}, frequency: {occ}')
-
-        # Print some sample scores if available
         if self.scoring_history:
             print("\nSample of strong branching scores:")
             sample_size = min(5, len(self.scoring_history))

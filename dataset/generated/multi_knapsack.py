@@ -1,5 +1,7 @@
 import numpy as np
 
+from dataset.generated.problem import Problem
+
 """
 Formulation
 max sum_i^n sum_{j in N_i} p_ij * x_ij
@@ -17,7 +19,7 @@ def multi_knapsack(n_problems: int, items: (int, int), knapsacks: (int, int), kn
 
 
 def __generate_problem(id: int, items: (int, int), knapsacks: (int, int), knapsack_capacity: (float, float),
-                   item_profit: (float, float), item_weight: (float, float)):
+                       item_profit: (float, float), item_weight: (float, float)):
     n_knapsacks = np.random.randint(*knapsacks)
     n_items = np.random.randint(*items)
     knapsack_capacities = np.random.uniform(*knapsack_capacity, n_knapsacks)
@@ -51,6 +53,15 @@ def __generate_problem(id: int, items: (int, int), knapsacks: (int, int), knapsa
     A = np.array(A)
     b = np.array(b)
     types = np.array(types)
-    bnd = [{"LO": 0, "UP": 1} for _ in range(n_vars)]
+    problem = Problem(
+        name=f"random_MKP_{id}",
+        c=c,
+        lb=[0] * n_vars,
+        ub=[1] * n_vars,
+        types=types,
+        b=b,
+        A=A
+    )
+    problem.solve()
 
-    return f"random_MKP_{id}", types, c, A, b, bnd
+    return problem

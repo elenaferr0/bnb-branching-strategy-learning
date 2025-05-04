@@ -74,6 +74,14 @@ def __generate_problem(id: int, cities: (int, int)):
     A = np.array(A)
     b = np.array(b)
     types = np.array(types)
-    bnd = [{"LO": 0, "UP": 1} for _ in range(n_vars)]
-
-    return f"random_TSP_{id}", types, c, A, b, bnd
+    problem = Problem(
+        name=f"random_TSP_{id}",
+        c=c,
+        lb=[0] * n_vars,
+        ub=[1] * n_vars,
+        types=types,
+        b=b,
+        A=A
+    )
+    problem.solve()
+    return problem

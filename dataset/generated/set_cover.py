@@ -1,5 +1,7 @@
 import numpy as np
 
+from dataset.generated.problem import Problem
+
 """
 Formulation
 min sum_{s in S} x_s
@@ -29,6 +31,26 @@ def __generate_problem(id: int, sets: (int, int), elements: (int, int)):
 
     b = np.ones(n_elements) # each element must be covered
     types = ['G'] * n_sets  # greater than
-    bnd = [{"LO": 0, "UP": 1} for _ in range(n_sets)]
 
-    return f"random_SC_{id}", types, c, A, b, bnd
+    problem = Problem(
+        name=f"random_SC_{id}",
+        c=c,
+        lb=[0] * n_sets,
+        ub=[1] * n_sets,
+        types=types,
+        b=b,
+        A=A
+    )
+
+    problem.solve()
+    return problem
+
+if __name__ == "__main__":
+    problems = set_cover(1, (5, 15), (5, 15))
+    for problem in problems:
+        print(problem.name)
+        # print("Objective coefficients:", problem.c)
+        # print("Constraints matrix:\n", problem.A)
+        # print("Right-hand side:", problem.b)
+        # print("Variable types:", problem.types)
+        # print("Bounds:", problem.lb, problem.ub)
