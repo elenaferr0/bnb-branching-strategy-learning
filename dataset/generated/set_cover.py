@@ -30,7 +30,7 @@ def __generate_problem(id: int, sets: (int, int), elements: (int, int)):
             A[i, j] = 1
 
     b = np.ones(n_elements) # each element must be covered
-    types = ['G'] * n_sets  # greater than
+    types = ['G'] * n_elements  # greater than
 
     problem = Problem(
         name=f"random_SC_{id}",
@@ -46,7 +46,8 @@ def __generate_problem(id: int, sets: (int, int), elements: (int, int)):
     return problem
 
 if __name__ == "__main__":
-    problems = set_cover(1, (5, 15), (5, 15))
+    np.random.seed(1)
+    problems = set_cover(1, (20, 25), (5, 15))
     for problem in problems:
         print(problem.name)
         # print("Objective coefficients:", problem.c)
