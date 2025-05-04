@@ -5,6 +5,7 @@
 
 struct Solution {
     double obj_val;
+    bool feasible;
     std::vector<double> x;
 };
 

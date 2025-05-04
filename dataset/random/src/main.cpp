@@ -27,22 +27,26 @@ int main(int argc, char *argv[]) {
     constexpr std::pair<int, int> sets = {100, 300};
     constexpr std::pair<int, int> elements = {100, 400};
     const std::vector<Problem> sc = set_cover(n_problems, sets, elements);
+    std::cout << "Generated " << sc.size() << "/" << n_problems << " SC problems" << std::endl;
 
     // // Bin packing
-    // constexpr std::pair<int, int> items = {5, 30};
-    // constexpr std::pair<int, int> bins = {3, 9};
-    // constexpr std::pair<double, double> bin_capacity = {10.0, 20.0};
-    // constexpr std::pair<double, double> item_size = {1.0, 5.0};
-    // const std::vector<Problem> bp = bin_packing(n_problems, items, bins, bin_capacity, item_size);
+    constexpr std::pair<int, int> items = {5, 30};
+    constexpr std::pair<int, int> bins = {3, 9};
+    constexpr std::pair<double, double> bin_capacity = {10.0, 20.0};
+    constexpr std::pair<double, double> item_size = {1.0, 5.0};
+    const std::vector<Problem> bp = bin_packing(n_problems, items, bins, bin_capacity, item_size);
+    std::cout << "Generated " << bp.size() << "/" << n_problems << " BP problems" << std::endl;
 
     // // Multiple knapsack
-    // constexpr std::pair<int, int> items_kp = {100, 300};
-    // constexpr std::pair<int, int> knapsacks = {5, 20};
-    // constexpr std::pair<double, double> knapsack_capacity = {50.0, 150.0};
-    // constexpr std::pair<double, double> item_profit = {10.0, 100.0};
-    // constexpr std::pair<double, double> item_weight = {5.0, 50.0};
-    // const std::vector<Problem> kp = multi_knapsack(n_problems, items_kp, knapsacks, knapsack_capacity, item_profit,
-    //                                                item_weight);
+    constexpr std::pair<int, int> items_kp = {70, 150};
+    constexpr std::pair<int, int> knapsacks = {10, 20};
+    constexpr std::pair<double, double> knapsack_capacity = {100.0, 150.0};
+    constexpr std::pair<double, double> item_profit = {10.0, 100.0};
+    constexpr std::pair<double, double> item_weight = {5.0, 30.0};
+    const std::vector<Problem> kp = multi_knapsack(n_problems, items_kp, knapsacks, knapsack_capacity, item_profit,
+                                                   item_weight);
+
+    std::cout << "Generated " << kp.size() << "/" << n_problems << " KP problems" << std::endl;
 
     // auto s = kp[0];
     // std::cout << "Problem name: " << s.name << std::endl;

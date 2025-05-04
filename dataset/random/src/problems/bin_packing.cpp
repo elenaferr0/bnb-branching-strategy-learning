@@ -1,3 +1,5 @@
+#include <iostream>
+#include <ostream>
 #include <string>
 #include <vector>
 #include "utils.h"
@@ -70,9 +72,18 @@ std::vector<Problem> bin_packing(const int n_problems,
                                  const std::pair<int, int> &bins,
                                  const std::pair<double, double> &bin_capacity,
                                  const std::pair<double, double> &item_size) {
-    std::vector<Problem> problems;
-    for (int i = 0; i < n_problems; ++i) {
-        problems.push_back(generate_problem(i, items, bins, bin_capacity, item_size));
+    std::vector<Problem> problems(n_problems);
+    int generated_problems = 0;
+    int attempts = 0;
+
+    while (generated_problems < n_problems && attempts < n_problems * 1.25) {
+        auto problem = generate_problem(generated_problems, items, bins, bin_capacity, item_size);
+        if (problem.solution.feasible) {
+            generated_problems++;
+            problems.push_back(problem);
+        }
+        attempts++;
     }
+
     return problems;
 }

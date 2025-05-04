@@ -64,10 +64,10 @@ void solve(Problem &problem) {
     const int sol_status = CPXgetstat(env, lp);
     if (sol_status == CPXMIP_OPTIMAL || sol_status == CPXMIP_OPTIMAL_TOL) {
         CHECKED_CPX_CALL(CPXgetobjval, env, lp, &problem.solution.obj_val);
-        std::cout << "Objective function value: " << problem.solution.obj_val << std::endl;
+        problem.solution.feasible = true;
     } else {
         // throw std::runtime_error("No optimal solution found for problem: " + problem.name);
-        std::cerr << "No optimal solution for " + problem.name << std::endl;
+        problem.solution.feasible = false;
         return;
     }
 

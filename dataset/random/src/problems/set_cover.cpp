@@ -1,5 +1,7 @@
 #include "problems/set_cover.h"
 
+#include <iostream>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -47,9 +49,18 @@ Problem generate_problem(const int id, const std::pair<int, int> &sets, const st
 
 std::vector<Problem> set_cover(const int n_problems, const std::pair<int, int> &sets,
                                const std::pair<int, int> &elements) {
-    std::vector<Problem> problems;
-    for (int i = 0; i < n_problems; ++i) {
-        problems.push_back(generate_problem(i, sets, elements));
+    std::vector<Problem> problems(n_problems);
+    int generated_problems = 0;
+    int attempts = 0;
+
+    while (generated_problems < n_problems && attempts < n_problems * 1.25) {
+        auto problem = generate_problem(generated_problems, sets, elements);
+        if (problem.solution.feasible) {
+            generated_problems++;
+            problems.push_back(problem);
+        }
+        attempts++;
     }
+
     return problems;
 }
