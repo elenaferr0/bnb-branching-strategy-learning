@@ -18,6 +18,8 @@ add_executable(main ${SOURCES} ${HEADERS}
         include/utils.h
         include/problems/bin_packing.h
         include/problems/set_cover.h
+        include/problem.h
+        src/problem.cpp
 )
 
 # Link libraries

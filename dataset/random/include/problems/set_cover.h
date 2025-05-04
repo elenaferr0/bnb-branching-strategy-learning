@@ -3,7 +3,7 @@
 #include <utility>
 #include <vector>
 
-#include "utils.h"
+#include "problem.h"
 
 constexpr double A_DENSITY = 0.5;
 

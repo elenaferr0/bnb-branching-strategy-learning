@@ -3,13 +3,13 @@
 #include <utility>
 #include <vector>
 
-#include "utils.h"
+#include "problem.h"
 
-Problem generate_problem(const int id, const std::pair<int, int> &items, const std::pair<int, int> &knapsacks,
+Problem generate_problem(int id, const std::pair<int, int> &items, const std::pair<int, int> &knapsacks,
                          const std::pair<double, double> &knapsack_capacity, const std::pair<double, double> &item_profit,
                          const std::pair<double, double> &item_weight);
 
-std::vector<Problem> multi_knapsack(const int n_problems, const std::pair<int, int> &items, const std::pair<int, int> &knapsacks,
+std::vector<Problem> multi_knapsack(int n_problems, const std::pair<int, int> &items, const std::pair<int, int> &knapsacks,
                                     const std::pair<double, double> &knapsack_capacity, const std::pair<double, double> &item_profit,
                                     const std::pair<double, double> &item_weight);
 #endif
