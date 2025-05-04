@@ -25,6 +25,34 @@ void solve(Problem &problem) {
     DECL_PROB(env, lp, problem.name.c_str());
     // Set time limit
     CHECKED_CPX_CALL(CPXsetdblparam, env, CPX_PARAM_TILIM, 5);
+    // CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_MIPKAPPASTATS, 0);
+
+    // Disable heuristics
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_HEURFREQ, -1);
+    // Disable cuts
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_BQPCUTS, 0);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_CLIQUES, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_COVERS, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_DISJCUTS, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_FLOWCOVERS, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_FLOWPATHS, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_FRACCUTS, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_GUBCOVERS, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_IMPLBD, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_MIRCUTS, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_MCFCUTS, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_PROBE, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_RLTCUTS, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_LOCALIMPLBD, -1);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_ZEROHALFCUTS, -1);
+
+    // Disable presolve
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_PREIND, CPX_OFF);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_REPEATPRESOLVE, 0);
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPX_PARAM_AGGIND, 0);
+
+    // Set branching strategy
+    CHECKED_CPX_CALL(CPXsetintparam, env, CPXPARAM_MIP_Strategy_VariableSelect, CPX_VARSEL_STRONG);
 
     // add variables
     const size_t n_vars = problem.c.size();

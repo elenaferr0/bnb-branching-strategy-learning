@@ -14,6 +14,8 @@
   - the constraints that should be added to the problem are the path taken to reach the current node
   - if there is no intersection between the feasible region and the new constraints -> no feasible solution
   - fathomed: a solution that was found but is not better than the current best solution. If I had found a better one this would become the new LB (?)
+
+- useful:https://www.ibm.com/docs/en/cofz/12.9.0?topic=optimizer-selecting-variables 
 # References
 - MIPLIB: 
   - Achterberg, T., Koch, T., Martin, A.: Miplib 2003. Operations Research Letters 34(4), 361–372 (2006) 
