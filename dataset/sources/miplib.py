@@ -8,10 +8,10 @@ import shutil
 from tqdm import tqdm
 from pysmps import smps_loader as smps
 
-from dataset import Problem
+from dataset.solver import Problem
 
 
-def download_file(url, local_filename, chunk_size=1024):
+def __download_file(url, local_filename, chunk_size=1024):
     if os.path.exists(local_filename):
         print(f"File {local_filename} already exists. Skipping download.")
         return True
@@ -30,7 +30,7 @@ def download_file(url, local_filename, chunk_size=1024):
         return False
 
 
-def extract_zip(zip_file_path, extract_path=None):
+def __extract_zip(zip_file_path, extract_path=None):
     if extract_path is not None and os.path.exists(extract_path):
         print(f"Directory {extract_path} already exists. Skipping extraction.")
         return True
@@ -45,13 +45,13 @@ def extract_zip(zip_file_path, extract_path=None):
         return False
 
 
-def filter_instances(csv: str) -> pd.DataFrame:
+def __filter_instances(csv: str) -> pd.DataFrame:
     df = pd.read_csv(csv)
     filtered_df = df[(df['Integers'] == 0) & (df['Continuous'] == 0) & (df['Variables'] <= 1000)]
     return filtered_df
 
 
-def create_filtered_instances_zip(df: pd.DataFrame, instances_path: str, zip_path: str):
+def __create_filtered_instances_zip(df: pd.DataFrame, instances_path: str, zip_path: str):
     if os.path.exists(zip_path):
         print(f"File {zip_path} already exists. Skipping creation.")
         return
@@ -76,7 +76,7 @@ def create_filtered_instances_zip(df: pd.DataFrame, instances_path: str, zip_pat
     print(f"Created {zip_path} with {len(df)} instances of size {os.path.getsize(zip_path) / 1024.0}MB.")
 
 
-def prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered_zip_path: str):
+def __prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered_zip_path: str):
     # if filtered zip already exists, skip download and load from it
     filtered_dir = filtered_zip_path.replace(".zip", "")
     if os.path.exists(filtered_dir):
@@ -85,22 +85,22 @@ def prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered_z
 
     if os.path.exists(filtered_zip_path):
         print(f"File {filtered_zip_path} already exists. Loading from it.")
-        extract_zip(filtered_zip_path, filtered_zip_path.replace('.zip', ''))
+        __extract_zip(filtered_zip_path, filtered_zip_path.replace('.zip', ''))
         return os.listdir(filtered_dir)
 
-    if not download_file(zip_url, zip_path) or not extract_zip(zip_path, os.path.dirname(zip_path)):
+    if not __download_file(zip_url, zip_path) or not __extract_zip(zip_path, os.path.dirname(zip_path)):
         return []
 
     # os.remove(zip_path)
-    instances = filter_instances(csv_path)
+    instances = __filter_instances(csv_path)
     print(f"Found {len(instances)} easy binary problems in {csv_path}")
 
     # Re-zip instances for easier portability
-    create_filtered_instances_zip(instances, zip_path.replace(".zip", ""), filtered_zip_path)
+    __create_filtered_instances_zip(instances, zip_path.replace(".zip", ""), filtered_zip_path)
     return instances
 
 
-def extract_gz(parent_path: str):
+def __extract_gz(parent_path: str):
     try:
         files = os.listdir(parent_path)
         for file in tqdm(files, desc="Extracting gz files"):
@@ -134,6 +134,6 @@ def load_miplib_dataset():
     zip_path = "dataset/miplib/collection.zip"
     csv = "dataset/miplib/collection_set.csv"
     filtered_path = "dataset/miplib/filtered_collection"
-    instances = prepare_filtered_data(url, zip_path, csv, f"{filtered_path}.zip")
-    extract_gz(filtered_path)
+    instances = __prepare_filtered_data(url, zip_path, csv, f"{filtered_path}.zip")
+    __extract_gz(filtered_path)
     return [load_mps(f"{filtered_path}/{i}") for i in tqdm(instances, desc="Loading mps files")]

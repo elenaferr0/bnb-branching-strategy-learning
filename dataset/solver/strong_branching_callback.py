@@ -50,7 +50,7 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
             return
 
         dv = self.index_to_var(best_var)
-        print(f'---> STRONG BRANCH[{self.nb_called}] on var={dv}, score={best_score:.4e}')
+        # print(f'---> STRONG BRANCH[{self.nb_called}] on var={dv}, score={best_score:.4e}')
         self.make_branch(obj_val, variables=[(best_var, "L", best_xj_floor + 1)],
                          node_data=(best_var, best_xj_floor, "UP"))
         self.make_branch(obj_val, variables=[(best_var, "U", best_xj_floor)],
@@ -102,8 +102,7 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
             return down_estimate, up_estimate
 
         except Exception as e:
-            # If there's an error in calculation, use simple objective coefficient estimation
-            print(f"Error in strong branching estimation: {e}")
+            print(f"Error in strong branching estimation for problem {self.model.name}")
             try:
                 # Fallback to using objective coefficient as a simple estimate
                 obj_coef = self.get_objective_coefficients()[var_idx]
