@@ -24,7 +24,7 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
         self.b = None
         self.c = None
 
-        self.features_to_score = [] # (x, y) dataset
+        self.dataset = pd.DataFrame()
 
         self.strong_branching_candidates = 10
 
@@ -82,7 +82,9 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
                 best_xj_floor = xj_floor
                 best_var_features = compute_features(j, self.A, self.b, self.c)
 
-        self.features_to_score.append((best_var_features, best_score))
+        best_var_features['score'] = best_score
+        row = pd.DataFrame.from_dict(best_var_features, orient='index').T
+        self.dataset = pd.concat([self.dataset, row], ignore_index=True)
         return best_score, best_var, best_xj_floor
 
     def __up_down_estimates(self, var_idx):
