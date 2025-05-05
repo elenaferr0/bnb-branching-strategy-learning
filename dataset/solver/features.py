@@ -6,16 +6,16 @@ import numpy as np
 from .problem import Problem
 
 
-def __static_feat(i: int, df: pd.DataFrame, problem: Problem):
+def __static_feat(i: int, df: pd.DataFrame, A: np.ndarray, b: np.ndarray, c: np.ndarray):
     # 1st class
     # sign{c_i}
-    c_i = problem.c[i]
+    c_i = c[i]
     df['sign'] = np.sign(c_i)
 
     # |c_i| / sum_{k: c_k >= 0} |c_k|
-    pos_sum = np.sum(np.abs(problem.c[problem.c >= 0]))
+    pos_sum = np.sum(np.abs(c[c >= 0]))
     # |c_i| / sum_{k: c_k < 0} |c_k|
-    neg_sum = np.sum(np.abs(problem.c[problem.c < 0]))
+    neg_sum = np.sum(np.abs(c[c < 0]))
 
     df['c_i/sum_pos'] = abs(c_i) / pos_sum if pos_sum != 0 else 0
     df['c_i/sum_neg'] = abs(c_i) / neg_sum if neg_sum != 0 else 0
@@ -25,11 +25,11 @@ def __static_feat(i: int, df: pd.DataFrame, problem: Problem):
     M1_pos = []
     # m_j^{-1}(i) = A_{ji}/|b_j|, forall j s.t. b_j < 0
     M1_neg = []
-    for j in range(problem.A.shape[0]):
-        if problem.b[j] >= 0:
-            M1_pos.append(problem.A[j, i] / abs(problem.b[j]))
+    for j in range(A.shape[0]):
+        if b[j] >= 0:
+            M1_pos.append(A[j, i] / abs(b[j]) if b[j] != 0 else 0)
         else:
-            M1_neg.append(problem.A[j, i] / abs(problem.b[j]))
+            M1_neg.append(A[j, i] / abs(b[j]))
 
     df['M1_pos_min'] = np.min(M1_pos) if M1_pos else 0
     df['M1_pos_max'] = np.max(M1_pos) if M1_pos else 0
@@ -40,11 +40,11 @@ def __static_feat(i: int, df: pd.DataFrame, problem: Problem):
     M2_pos = []
     # m_j^{2-} (i) = |c_i|/|A_{ji}| forall j s.t. c_i < 0
     M2_neg = []
-    for j in range(problem.A.shape[0]):
-        if problem.c[i] >= 0:
-            M2_pos.append(abs(c_i) / abs(problem.A[j, i]))
+    for j in range(A.shape[0]):
+        if c[i] >= 0:
+            M2_pos.append(abs(c_i) / abs(A[j, i]) if A[j, i] != 0 else 0)
         else:
-            M2_neg.append(abs(c_i) / abs(problem.A[j, i]))
+            M2_neg.append(abs(c_i) / abs(A[j, i]) if A[j, i] != 0 else 0)
 
     df['M2_pos_min'] = np.min(M2_pos) if M2_pos else 0
     df['M2_pos_max'] = np.max(M2_pos) if M2_pos else 0
@@ -56,12 +56,12 @@ def __static_feat(i: int, df: pd.DataFrame, problem: Problem):
     M3_mp = []
     M3_mm = []
 
-    for j in range(problem.A.shape[0]):
-        pos_sum = np.sum(np.abs(problem.A[j, problem.A[j] >= 0]))
-        neg_sum = np.sum(np.abs(problem.A[j, problem.A[j] < 0]))
+    for j in range(A.shape[0]):
+        pos_sum = np.sum(np.abs(A[j, A[j] >= 0]))
+        neg_sum = np.sum(np.abs(A[j, A[j] < 0]))
 
-        a_ji = abs(problem.A[j, i])
-        if problem.A[j, i] >= 0:
+        a_ji = abs(A[j, i])
+        if A[j, i] >= 0:
             M3_pp.append(a_ji / pos_sum if pos_sum != 0 else 0)
             M3_pm.append(a_ji / neg_sum if neg_sum != 0 else 0)
         else:
@@ -80,6 +80,7 @@ def __static_feat(i: int, df: pd.DataFrame, problem: Problem):
     return df
 
 
-def compute_features(var_idx: int, problem: Problem):
-    features = __static_feat(var_idx, pd.DataFrame(), problem)
+def compute_features(var_idx: int, A: np.ndarray, b: np.ndarray, c: np.ndarray):
+    features = __static_feat(var_idx, pd.DataFrame(), A, b, c)
+    return features
 

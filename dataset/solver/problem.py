@@ -18,11 +18,9 @@ class Problem:
         sb_callback.A = self.A
         sb_callback.b = self.b
         sb_callback.c = self.c
-
         sb_callback.strong_branching_candidates = max_candidates
 
         model.parameters.mip.interval = 1  # Check nodes frequently
-        # model.parameters.mip.strategy.variableselect = 3  # Use strong branching for CPLEX's own decisions
 
         solution = model.solve(log_output=logged)
         assert solution is not None

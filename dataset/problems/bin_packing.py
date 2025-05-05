@@ -80,3 +80,21 @@ def __generate_problem(id: int, items: (int, int), bins: (int, int), bin_capacit
         A=A
     )
     return problem
+
+if __name__ == "__main__":
+    np.random.seed(0)
+    bp = bin_packing(
+        n_problems=1,
+        items=(3, 4),
+        bins=(10, 20),
+        bin_capacity=(3, 4),
+        item_size=(1, 2),
+
+        # n_problems=1,
+        # items=(100, 300),
+        # bins=(50, 150),
+        # bin_capacity=(50, 100),
+        # item_size=(10, 60),
+    )
+    bp[0].solve()
+    print(bp)

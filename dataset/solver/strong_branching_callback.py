@@ -1,9 +1,16 @@
 from collections import defaultdict
+from typing import Dict, List
 
 import cplex.callbacks as cpx_cb
 import docplex.mp.model
 import math
+import numpy as np
 from docplex.mp.callbacks.cb_mixin import *
+import pandas as pd
+
+from dataset.solver.features import compute_features
+
+from dataset.solver.features import compute_features
 
 
 class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
@@ -16,6 +23,8 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
         self.A = None
         self.b = None
         self.c = None
+
+        self.features_to_score = [] # (x, y) dataset
 
         self.strong_branching_candidates = 10
 
@@ -55,6 +64,7 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
         best_score = float('-inf')
         best_var = -1
         best_xj_floor = 0
+        best_var_features = None
         for j, xj, frac, obj_coef in candidates:
             xj_floor = math.floor(xj)
 
@@ -70,6 +80,9 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
                 best_score = score
                 best_var = j
                 best_xj_floor = xj_floor
+                best_var_features = compute_features(j, self.A, self.b, self.c)
+
+        self.features_to_score.append((best_var_features, best_score))
         return best_score, best_var, best_xj_floor
 
     def __up_down_estimates(self, var_idx):
@@ -112,10 +125,4 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
                 if 0.01 < frac_value < 0.99:  # Ensure variable is truly fractional
                     fractional_vars.append((j, x[j], frac_value, c[j]))
         return fractional_vars
-
-    def __get_problem(self):
-        model: docplex.mp.model.Model = self.model
-        c = self.get_objective_coefficients()
-        A = []
-        b = []
 
