@@ -1,6 +1,6 @@
 import numpy as np
 
-from dataset.generated.problem import Problem
+from dataset.solver.problem import Problem
 
 """
 Formulation
@@ -32,7 +32,7 @@ def __generate_problem(id: int, sets: (int, int), elements: (int, int)):
     b = np.ones(n_elements) # each element must be covered
     types = ['G'] * n_elements  # greater than
 
-    problem = Problem(
+    return Problem(
         name=f"random_SC_{id}",
         c=c,
         lb=[0] * n_sets,
@@ -41,17 +41,3 @@ def __generate_problem(id: int, sets: (int, int), elements: (int, int)):
         b=b,
         A=A
     )
-
-    problem.solve()
-    return problem
-
-if __name__ == "__main__":
-    np.random.seed(1)
-    problems = set_cover(1, (20, 25), (5, 15))
-    for problem in problems:
-        print(problem.name)
-        # print("Objective coefficients:", problem.c)
-        # print("Constraints matrix:\n", problem.A)
-        # print("Right-hand side:", problem.b)
-        # print("Variable types:", problem.types)
-        # print("Bounds:", problem.lb, problem.ub)

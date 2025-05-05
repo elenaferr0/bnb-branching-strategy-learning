@@ -1,6 +1,6 @@
 import numpy as np
 
-from dataset.generated.problem import Problem
+from dataset.solver.problem import Problem
 
 """
 Formulation
@@ -53,7 +53,7 @@ def __generate_problem(id: int, items: (int, int), knapsacks: (int, int), knapsa
     A = np.array(A)
     b = np.array(b)
     types = np.array(types)
-    problem = Problem(
+    return Problem(
         name=f"random_MKP_{id}",
         c=c,
         lb=[0] * n_vars,
@@ -62,6 +62,3 @@ def __generate_problem(id: int, items: (int, int), knapsacks: (int, int), knapsa
         b=b,
         A=A
     )
-    problem.solve()
-
-    return problem

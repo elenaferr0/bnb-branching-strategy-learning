@@ -8,6 +8,8 @@ import shutil
 from tqdm import tqdm
 from pysmps import smps_loader as smps
 
+from dataset import Problem
+
 
 def download_file(url, local_filename, chunk_size=1024):
     if os.path.exists(local_filename):
@@ -115,18 +117,19 @@ def extract_gz(parent_path: str):
 
 
 def load_mps(path: str):
-    name, _, _, _, _, types, c, A, _, rhs, _, bnd = smps.load_mps(path)
-    return {
-        "name": name,
-        "types": types,
-        "c": c,
-        "A": A,
-        "rhs": rhs,
-        "bnd": bnd
-    }
+    name, _, _, _, _, types, c, A, _, rhs, _, _ = smps.load_mps(path)
+    return Problem(
+        name=name,
+        c=c,
+        lb=[0] * len(c),
+        ub=[1] * len(c),
+        types=types,
+        b=rhs,
+        A=A,
+    )
 
 
-def prepare_miplib_data():
+def load_miplib_dataset():
     url = "https://miplib.zib.de/downloads/collection.zip"
     zip_path = "dataset/miplib/collection.zip"
     csv = "dataset/miplib/collection_set.csv"
@@ -134,8 +137,3 @@ def prepare_miplib_data():
     instances = prepare_filtered_data(url, zip_path, csv, f"{filtered_path}.zip")
     extract_gz(filtered_path)
     return [load_mps(f"{filtered_path}/{i}") for i in tqdm(instances, desc="Loading mps files")]
-
-
-if __name__ == "__main__":
-    a = prepare_miplib_data()
-    print(a[0])

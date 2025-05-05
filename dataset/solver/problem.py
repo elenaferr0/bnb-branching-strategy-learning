@@ -1,7 +1,6 @@
 from docplex.mp.model import Model
 
 
-
 class Problem:
     def __init__(self, name, c, lb, ub, types, b, A):
         self.name = name
@@ -13,10 +12,13 @@ class Problem:
         self.A = A
         self.solution = None
 
-    @staticmethod
-    def add_branching_callback(model: Model, max_candidates=10, logged=False):
-        from dataset.generated.strong_branching_callback import StrongBranchCallback
-        sb_callback = model.register_callback(StrongBranchCallback)
+    def add_branching_callback(self, model: Model, max_candidates=10, logged=False):
+        from dataset.solver.strong_branching_callback import StrongBranchCallback
+        sb_callback : StrongBranchCallback = model.register_callback(StrongBranchCallback)
+        sb_callback.A = self.A
+        sb_callback.b = self.b
+        sb_callback.c = self.c
+
         sb_callback.strong_branching_candidates = max_candidates
 
         model.parameters.mip.interval = 1  # Check nodes frequently
@@ -26,7 +28,6 @@ class Problem:
         assert solution is not None
         model.report()
 
-        sb_callback.report(n=5)
         return sb_callback
 
     def solve(self):
@@ -38,7 +39,10 @@ class Problem:
 
         model.minimize(model.sum(x[i] * self.c[i] for i in range(n_vars)))
 
-        # Add constraints
+        n_constraints = len(self.b)
+        if n_constraints != len(self.types):
+            raise Exception( f"Number of constraints ({n_constraints}) doesn't match number of types ({len(self.types)})")
+
         n_constraints = len(self.types)
         for i in range(n_constraints):
             row = self.A[i]
@@ -52,7 +56,6 @@ class Problem:
             elif sense == 'E':
                 model.add_constraint(lhs == rhs)
 
-        # Set time limit
         model.parameters.timelimit = 5
 
         # Disable heuristics

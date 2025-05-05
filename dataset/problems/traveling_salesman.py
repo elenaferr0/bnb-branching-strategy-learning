@@ -1,6 +1,6 @@
 from itertools import combinations
-
 import numpy as np
+from dataset.solver.problem import Problem
 
 """
 Formulation
@@ -74,7 +74,7 @@ def __generate_problem(id: int, cities: (int, int)):
     A = np.array(A)
     b = np.array(b)
     types = np.array(types)
-    problem = Problem(
+    return Problem(
         name=f"random_TSP_{id}",
         c=c,
         lb=[0] * n_vars,
@@ -83,5 +83,3 @@ def __generate_problem(id: int, cities: (int, int)):
         b=b,
         A=A
     )
-    problem.solve()
-    return problem
