@@ -30,7 +30,7 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
         obj_val = self.get_objective_value()
         coeffs = self.get_objective_coefficients()
 
-        fractional_vars = self.__get_fractional_vars(coeffs, x)
+        fractional_vars = self.__get_fractional_vars(x, coeffs)
 
         if not fractional_vars:
             return
