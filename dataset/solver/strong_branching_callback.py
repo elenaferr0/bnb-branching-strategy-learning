@@ -44,17 +44,17 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
         if not fractional_vars:
             return
 
-        best_score, best_var, best_xj_floor = self.__get_branching_variable(fractional_vars, obj_val)
+        best_var, best_x_i_floor = self.__get_branching_variable(fractional_vars, obj_val)
 
         if best_var < 0:  # No good branching candidate
             return
 
-        dv = self.index_to_var(best_var)
+        # dv = self.index_to_var(best_var)
         # print(f'---> STRONG BRANCH[{self.nb_called}] on var={dv}, score={best_score:.4e}')
-        self.make_branch(obj_val, variables=[(best_var, "L", best_xj_floor + 1)],
-                         node_data=(best_var, best_xj_floor, "UP"))
-        self.make_branch(obj_val, variables=[(best_var, "U", best_xj_floor)],
-                         node_data=(best_var, best_xj_floor, "DOWN"))
+        self.make_branch(obj_val, variables=[(best_var, "L", best_x_i_floor + 1)],
+                         node_data=(best_var, best_x_i_floor, "UP"))
+        self.make_branch(obj_val, variables=[(best_var, "U", best_x_i_floor)],
+                         node_data=(best_var, best_x_i_floor, "DOWN"))
 
     def __get_branching_variable(self, fractional_vars, obj_val):
         # sort by closest to 0.5 and obj coefficient
@@ -63,59 +63,45 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
 
         best_score = float('-inf')
         best_var = -1
-        best_xj_floor = 0
-        best_var_features = None
-        for j, xj, frac, obj_coef in candidates:
-            xj_floor = math.floor(xj)
+        best_x_i_floor = -1
 
-            # evaluate branches by checking objective degradation
-            down_bound, up_bound = self.__up_down_estimates(j)
-            # assume standard (minimization) problem
-            down_degrad = down_bound - obj_val
-            up_degrad = up_bound - obj_val
+        for i, x_i, _, _ in candidates:
+            down_bound = self.__solve_relaxed_subproblem(i, "DOWN")
+            up_bound = self.__solve_relaxed_subproblem(i, "UP")
 
-            score = down_degrad * up_degrad
+            down_degradation = down_bound - obj_val
+            up_degradation = up_bound - obj_val
+
+            score = down_degradation * up_degradation
 
             if score > best_score:
                 best_score = score
-                best_var = j
-                best_xj_floor = xj_floor
-                best_var_features = compute_features(j, self.A, self.b, self.c)
+                best_var = i
+                best_x_i_floor = math.floor(x_i)
 
-        best_var_features['score'] = best_score
-        row = pd.DataFrame.from_dict(best_var_features, orient='index').T
-        self.dataset = pd.concat([self.dataset, row], ignore_index=True)
-        return best_score, best_var, best_xj_floor
+            features = compute_features(i, self.A, self.b, self.c)
+            features['score'] = score
+            row = pd.DataFrame.from_dict(features, orient='index').T
+            self.dataset = pd.concat([self.dataset, row], ignore_index=True)
 
-    def __up_down_estimates(self, var_idx):
-        current_obj = self.get_objective_value()
-        try:
-            x_val = self.get_values(var_idx)
-            # Estimate impact of branching with pseudo costs
-            pseudo_up, pseudo_down = self.get_pseudo_costs(var_idx)
-
-            frac = x_val - math.floor(x_val)
-
-            down_estimate = current_obj - frac * pseudo_down
-            up_estimate = current_obj - (1 - frac) * pseudo_up
-
-            return down_estimate, up_estimate
-
-        except Exception as e:
-            print(f"Error in strong branching estimation for problem {self.model.name}")
-            try:
-                # Fallback to using objective coefficient as a simple estimate
-                obj_coef = self.get_objective_coefficients()[var_idx]
-                x_val = self.get_values(var_idx)
-                frac = x_val - math.floor(x_val)
-
-                # Suppose only standard-form (minimization) problems are solved
-                down_bound = current_obj + abs(obj_coef) * frac if obj_coef < 0 else current_obj
-                up_bound = current_obj + abs(obj_coef) * (1 - frac) if obj_coef > 0 else current_obj
-
-                return down_bound, up_bound
-            except:
-                return current_obj, current_obj
+        return best_var, best_x_i_floor
+    
+    def __solve_relaxed_subproblem(self, i: int, constraint: str):
+        model = self.get_model(newname=f"{self.model.name}_{constraint}").clone()
+        if constraint == "UP":
+            model.add_constraint(
+                model.get_var_by_index(i) >= math.ceil(model.get_var_by_index(i).solution_value)
+            )
+        else:
+            model.add_constraint(
+                model.get_var_by_index(i) <= math.floor(model.get_var_by_index(i).solution_value)
+            )
+        model.change_var_type(
+            model.get_var_by_index(i), 
+            docplex.mp.constants.VarType.continuous
+        )
+        model.solve()
+        return model.get_objective_value()
 
     def __get_fractional_vars(self, x, c):
         fractional_vars = []
