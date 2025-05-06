@@ -7,6 +7,8 @@ import math
 import numpy as np
 from docplex.mp.callbacks.cb_mixin import *
 import pandas as pd
+from docplex.mp.relax_linear import LinearRelaxer
+from docplex.mp.solution import SolveSolution
 
 from dataset.solver.features import compute_features
 
@@ -26,7 +28,7 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
 
         self.dataset = pd.DataFrame()
 
-        self.strong_branching_candidates = 10
+        self.strong_branching_candidates = 5  # TODO: remove this limit
 
     def __call__(self):
         self.nb_called += 1
@@ -44,13 +46,13 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
         if not fractional_vars:
             return
 
-        best_var, best_x_i_floor = self.__get_branching_variable(fractional_vars, obj_val)
+        best_var, best_x_i_floor, best_score = self.__get_branching_variable(fractional_vars, obj_val)
 
         if best_var < 0:  # No good branching candidate
             return
 
-        # dv = self.index_to_var(best_var)
-        # print(f'---> STRONG BRANCH[{self.nb_called}] on var={dv}, score={best_score:.4e}')
+        dv = self.index_to_var(best_var)
+        print(f'---> STRONG BRANCH[{self.nb_called}] on var={dv}, score={best_score:.4e}')
         self.make_branch(obj_val, variables=[(best_var, "L", best_x_i_floor + 1)],
                          node_data=(best_var, best_x_i_floor, "UP"))
         self.make_branch(obj_val, variables=[(best_var, "U", best_x_i_floor)],
@@ -66,8 +68,8 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
         best_x_i_floor = -1
 
         for i, x_i, _, _ in candidates:
-            down_bound = self.__solve_relaxed_subproblem(i, "DOWN")
-            up_bound = self.__solve_relaxed_subproblem(i, "UP")
+            down_bound = self.__solve_relaxed_subproblem(i, x_i, "DOWN")
+            up_bound = self.__solve_relaxed_subproblem(i, x_i, "UP")
 
             down_degradation = down_bound - obj_val
             up_degradation = up_bound - obj_val
@@ -84,24 +86,19 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
             row = pd.DataFrame.from_dict(features, orient='index').T
             self.dataset = pd.concat([self.dataset, row], ignore_index=True)
 
-        return best_var, best_x_i_floor
-    
-    def __solve_relaxed_subproblem(self, i: int, constraint: str):
-        model = self.get_model(newname=f"{self.model.name}_{constraint}").clone()
+        return best_var, best_x_i_floor, best_score
+
+    def __solve_relaxed_subproblem(self, i: int, val, constraint: str):
+        rx = LinearRelaxer.make_relaxed_model(self.model, relaxed_name=f"relaxed_{constraint}_{self.model.name}")
         if constraint == "UP":
-            model.add_constraint(
-                model.get_var_by_index(i) >= math.ceil(model.get_var_by_index(i).solution_value)
-            )
+            rx.add_constraint(rx.get_var_by_index(i) >= math.ceil(val))
         else:
-            model.add_constraint(
-                model.get_var_by_index(i) <= math.floor(model.get_var_by_index(i).solution_value)
-            )
-        model.change_var_type(
-            model.get_var_by_index(i), 
-            docplex.mp.constants.VarType.continuous
-        )
-        model.solve()
-        return model.get_objective_value()
+            rx.add_constraint(rx.get_var_by_index(i) <= math.floor(val))
+        solution: SolveSolution = rx.solve()
+        if solution is None:
+            return float('inf')
+        else:
+            return solution.objective_value
 
     def __get_fractional_vars(self, x, c):
         fractional_vars = []
@@ -112,4 +109,3 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
                 if 0.01 < frac_value < 0.99:  # Ensure variable is truly fractional
                     fractional_vars.append((j, x[j], frac_value, c[j]))
         return fractional_vars
-
