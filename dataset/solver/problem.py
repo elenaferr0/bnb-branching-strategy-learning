@@ -57,7 +57,7 @@ class Problem:
             elif sense == 'E':
                 model.add_constraint(lhs == rhs)
 
-        model.parameters.timelimit = 5
+        # model.parameters.timelimit = 5
 
         # Disable cuts
         model.parameters.mip.cuts.bqp = -1
@@ -90,7 +90,7 @@ class Problem:
 
         model.parameters.mip.interval = 1  # Check nodes frequently
 
-        return self.__solve_with_sb(model, logged=True)
+        return self.__solve_with_sb(model, logged=False)
 
     def __repr__(self):
         return f"Problem(name={self.name})"
