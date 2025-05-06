@@ -47,7 +47,7 @@ def __extract_zip(zip_file_path, extract_path=None):
 
 def __filter_instances(csv: str) -> pd.DataFrame:
     df = pd.read_csv(csv)
-    filtered_df = df[(df['Integers'] == 0) & (df['Continuous'] == 0) & (df['Variables'] <= 300)]
+    filtered_df = df[(df['Integers'] == 0) & (df['Continuous'] == 0) & (df['Binaries'] <= 500) & (df['Constraints'] < 5000)]
     return filtered_df
 
 
@@ -102,8 +102,6 @@ def __prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered
 
 def __extract_gz(parent_path: str):
     try:
-        if not os.path.exists(parent_path):
-            os.makedirs(parent_path)
         files = os.listdir(parent_path)
         for file in tqdm(files, desc="Extracting gz files"):
             if not file.endswith('.gz'):
@@ -119,14 +117,14 @@ def __extract_gz(parent_path: str):
 
 
 def load_mps(path: str):
-    name, _, _, _, _, types, c, A, _, rhs, _, _ = smps.load_mps(path)
+    name, _, _, _, _, types, c, A, rhs_names, rhs, _, _ = smps.load_mps(path)
     return Problem(
         name=name,
         c=c,
         lb=[0] * len(c),
         ub=[1] * len(c),
         types=types,
-        b=rhs['RHS'] if 'RHS' in rhs else rhs['rhs'], # due to inconsistent naming in the dataset
+        b=rhs[rhs_names[0]],
         A=A,
     )
 
