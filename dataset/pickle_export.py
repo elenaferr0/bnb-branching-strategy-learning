@@ -4,33 +4,34 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 
-from dataset import generate_datasets, load_orlib_dataset, load_miplib_dataset
+from dataset import generate_datasets, load_miplib_dataset
 
 
 def load_and_export():
     np.random.seed(42)
-    df = pd.DataFrame()
+    dataset = pd.DataFrame()
+    stats = pd.DataFrame()
 
-    dataset = load_miplib_dataset(size_limit=1)
-
-    # dataset = generate_datasets(
-    #     set_cover_instances=0,
-    #     bin_packing_instances=1,
-    #     multi_knapsack_instances=0,
-    #     traveling_salesman_instances=0
-    # )
-    for problem in dataset:
+    # miplib = load_miplib_dataset()
+    problems = generate_datasets(
+        set_cover_instances=0,
+        bin_packing_instances=1,
+        traveling_salesman_instances=1
+    )
+    for problem in problems['BP']:
         try:
-            solution = problem.solve()
-            break
-            print(f"Problem {problem.name} solved with status: {solution.status}")
+            solution, stats_result = problem.solve()
+            dataset = pd.concat([dataset, solution], ignore_index=True)
+            stats_row  = pd.DataFrame.from_dict(stats_result, orient='index').T
+            stats = pd.concat([stats, stats_row], ignore_index=True)
+            print(f"Problem {problem.name} solved in {stats_result['time']} seconds")
         except Exception as e:
             print(f"Error in problem {problem.name}: {e}")
 
-    if df.empty:
+    if dataset.empty:
         return
-    df.to_pickle(f'dataset.pickle')
-
+    dataset.to_pickle(f'dataset.pickle')
+    stats.to_pickle(f'stats.pickle')
 
 if __name__ == "__main__":
     load_and_export()
