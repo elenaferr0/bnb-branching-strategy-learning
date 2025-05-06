@@ -1,7 +1,9 @@
-from datetime import time
-
+import pandas as pd
 from docplex.mp.model import Model
 from datetime import datetime
+
+from docplex.mp.solution import SolveSolution
+
 
 class Problem:
     def __init__(self, name, c, lb, ub, types, b, A):
@@ -22,15 +24,19 @@ class Problem:
         sb_callback.strong_branching_candidates = max_candidates
 
         start = datetime.now()
-        solution = model.solve(log_output=logged)
-        print(model.solve_details.status)
+        solution : SolveSolution = model.solve(log_output=logged)
         end = datetime.now()
 
         assert solution is not None
-        # model.report()
-        print(f"{self.name} solved in {end - start} seconds")
 
-        return sb_callback.dataset
+        stats = {
+            'time_ms': (end - start).total_seconds(),
+            'n_vars': len(self.c),
+            'n_constraints': len(self.b),
+            'name': self.name,
+            'sb_decision': sb_callback.nb_called,
+        }
+        return sb_callback.dataset, stats
 
     def solve(self):
         model = Model(name=self.name)
@@ -46,16 +52,12 @@ class Problem:
 
         n_constraints = len(self.types)
         for i in range(n_constraints):
-            row = self.A[i]
-            sense = self.types[i]
-            rhs = self.b[i]
-            lhs = model.sum(row[j] * x[j] for j in range(n_vars))
-            if sense == 'L':
-                model.add_constraint(lhs <= rhs)
-            elif sense == 'G':
-                model.add_constraint(lhs >= rhs)
-            elif sense == 'E':
-                model.add_constraint(lhs == rhs)
+            if self.types[i] == 'E':
+                model.add_constraint(model.dot(x, self.A[i]) == self.b[i])
+            elif self.types[i] == 'G':
+                model.add_constraint(model.dot(x, self.A[i]) >= self.b[i])
+            elif self.types[i] == 'L':
+                model.add_constraint(model.dot(x, self.A[i]) <= self.b[i])
 
         # model.parameters.timelimit = 5
 
