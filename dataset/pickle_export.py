@@ -4,21 +4,22 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 
-from dataset import generate_datasets, load_orlib_dataset
+from dataset import generate_datasets, load_orlib_dataset, load_miplib_dataset
 
 
 def load_and_export():
-    # miplib_dataset = load_miplib_dataset()
     np.random.seed(42)
-
     df = pd.DataFrame()
-    dataset = generate_datasets(
-        set_cover_instances=0,
-        bin_packing_instances=1,
-        multi_knapsack_instances=0,
-        traveling_salesman_instances=0
-    )
-    for problem in dataset['BP']:
+
+    dataset = load_miplib_dataset(size_limit=1)
+
+    # dataset = generate_datasets(
+    #     set_cover_instances=0,
+    #     bin_packing_instances=1,
+    #     multi_knapsack_instances=0,
+    #     traveling_salesman_instances=0
+    # )
+    for problem in dataset:
         try:
             solution = problem.solve()
             break

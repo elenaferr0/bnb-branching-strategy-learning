@@ -47,7 +47,7 @@ def __extract_zip(zip_file_path, extract_path=None):
 
 def __filter_instances(csv: str) -> pd.DataFrame:
     df = pd.read_csv(csv)
-    filtered_df = df[(df['Integers'] == 0) & (df['Continuous'] == 0) & (df['Variables'] <= 1000)]
+    filtered_df = df[(df['Integers'] == 0) & (df['Continuous'] == 0) & (df['Variables'] <= 300)]
     return filtered_df
 
 
@@ -79,7 +79,7 @@ def __create_filtered_instances_zip(df: pd.DataFrame, instances_path: str, zip_p
 def __prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered_zip_path: str):
     # if filtered zip already exists, skip download and load from it
     filtered_dir = filtered_zip_path.replace(".zip", "")
-    if os.path.exists(filtered_dir):
+    if os.path.exists(filtered_dir) and len(os.listdir(filtered_dir)) > 0:
         print(f"Directory {filtered_dir} already exists. Skipping extraction.")
         return os.listdir(filtered_dir)
 
@@ -97,11 +97,13 @@ def __prepare_filtered_data(zip_url: str, zip_path: str, csv_path: str, filtered
 
     # Re-zip instances for easier portability
     __create_filtered_instances_zip(instances, zip_path.replace(".zip", ""), filtered_zip_path)
-    return instances
+    return list(map(lambda x: f"{x}.mps", instances['Instance'].tolist()))
 
 
 def __extract_gz(parent_path: str):
     try:
+        if not os.path.exists(parent_path):
+            os.makedirs(parent_path)
         files = os.listdir(parent_path)
         for file in tqdm(files, desc="Extracting gz files"):
             if not file.endswith('.gz'):
@@ -124,16 +126,19 @@ def load_mps(path: str):
         lb=[0] * len(c),
         ub=[1] * len(c),
         types=types,
-        b=rhs,
+        b=rhs['RHS'] if 'RHS' in rhs else rhs['rhs'], # due to inconsistent naming in the dataset
         A=A,
     )
 
 
-def load_miplib_dataset():
+def load_miplib_dataset(size_limit=None):
     url = "https://miplib.zib.de/downloads/collection.zip"
-    zip_path = "dataset/miplib/collection.zip"
-    csv = "dataset/miplib/collection_set.csv"
-    filtered_path = "dataset/miplib/filtered_collection"
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    zip_path = os.path.join(current_dir, "miplib/collection.zip")
+    csv = os.path.join(current_dir, "miplib/collection_set.csv")
+    filtered_path = os.path.join(current_dir, "miplib/filtered_collection")
     instances = __prepare_filtered_data(url, zip_path, csv, f"{filtered_path}.zip")
+    if size_limit is not None:
+        instances = instances[:size_limit]
     __extract_gz(filtered_path)
     return [load_mps(f"{filtered_path}/{i}") for i in tqdm(instances, desc="Loading mps files")]
