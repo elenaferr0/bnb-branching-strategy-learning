@@ -10,9 +10,7 @@ import pandas as pd
 from docplex.mp.relax_linear import LinearRelaxer
 from docplex.mp.solution import SolveSolution
 
-from dataset.solver.features import compute_features
-
-from dataset.solver.features import compute_features
+from solver.features import compute_features
 
 
 class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
@@ -74,17 +72,18 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
             down_degradation = down_bound - obj_val
             up_degradation = up_bound - obj_val
 
-            score = down_degradation * up_degradation
+            score = (down_degradation * up_degradation) / np.abs(obj_val)
 
             if score > best_score:
                 best_score = score
                 best_var = i
                 best_x_i_floor = math.floor(x_i)
 
-            features = compute_features(i, self.A, self.b, self.c)
-            features['score'] = score
-            row = pd.DataFrame.from_dict(features, orient='index').T
-            self.dataset = pd.concat([self.dataset, row], ignore_index=True)
+            if score > 0 and score != float('inf'):
+                features = compute_features(i, self.A, self.b, self.c)
+                features['score'] = np.log(score)
+                row = pd.DataFrame.from_dict(features, orient='index').T
+                self.dataset = pd.concat([self.dataset, row], ignore_index=True)
 
         return best_var, best_x_i_floor, best_score
 
