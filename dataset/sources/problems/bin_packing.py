@@ -1,6 +1,6 @@
 import numpy as np
 
-from dataset.solver.problem import Problem
+from solver.problem import Problem
 
 """
 Formulation
@@ -33,6 +33,7 @@ def __generate_problem(id: int, items: (int, int), bins: (int, int), bin_capacit
     bin_capacity = np.random.uniform(*bin_capacity)
     item_sizes = np.random.uniform(*item_size, size=n_items)
     n_vars = n_bins + n_items * n_bins  # y_i + x_{ij}
+    assert n_vars < 1000, "Community edition has a limit of 1000 variables"
 
     c = np.concatenate([
         np.ones(n_bins),  # cost for bins (y_j)
@@ -68,6 +69,9 @@ def __generate_problem(id: int, items: (int, int), bins: (int, int), bin_capacit
 
     A = np.array(A)
     b = np.array(b)
+    assert A.shape[0] == b.shape[0], "A and b must have the same number of rows"
+    assert b.shape[0] <= 1000, "Community edition has a limit of 1000 constraints"
+
     types = np.array(types)
 
     return Problem(
@@ -79,22 +83,3 @@ def __generate_problem(id: int, items: (int, int), bins: (int, int), bin_capacit
         b=b,
         A=A
     )
-    return problem
-
-if __name__ == "__main__":
-    np.random.seed(0)
-    bp = bin_packing(
-        n_problems=1,
-        items=(3, 4),
-        bins=(10, 20),
-        bin_capacity=(3, 4),
-        item_size=(1, 2),
-
-        # n_problems=1,
-        # items=(100, 300),
-        # bins=(50, 150),
-        # bin_capacity=(50, 100),
-        # item_size=(10, 60),
-    )
-    bp[0].solve()
-    print(bp)
