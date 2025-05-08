@@ -5,17 +5,18 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 
-from sources.generator import generate_datasets
-from sources.miplib import load_miplib_dataset
+from dataset.sources.generator import generate_datasets
+from dataset.sources.miplib import load_miplib_dataset
 
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 def solve(problems, name):
     if len(problems) == 0:
         return
 
-    dataset_name = f"dataset/{name}_solution.pkl"
-    stats_name = f"dataset/{name}_stats.pkl"
+    dataset_name = f"{current_dir}/{name}_solution.pkl"
+    stats_name = f"{current_dir}/{name}_stats.pkl"
 
     dataset = pd.read_pickle(dataset_name) if os.path.exists(dataset_name) else pd.DataFrame()
     stats = pd.read_pickle(stats_name) if os.path.exists(stats_name) else pd.DataFrame()
@@ -30,8 +31,8 @@ def solve(problems, name):
                 stats = pd.concat([stats, stats_row], ignore_index=True)
                 print(f"Problem {problem.name} solved in {stats_result['time']} seconds")
                 # overwrite dataset and stats files
-                dataset.to_pickle(f"dataset/{name}_solution.pkl")
-                stats.to_pickle(f"dataset/{name}_stats.pkl")
+                dataset.to_pickle(f"{current_dir}/{name}_solution.pkl")
+                stats.to_pickle(f"{current_dir}/{name}_stats.pkl")
             else:
                 print(f"Problem {problem.name} already solved, skipping.")
         except AssertionError as e:
@@ -40,18 +41,13 @@ def solve(problems, name):
             print(f"Error solving problem {problem.name}: {e}")
             continue
 
-
-    dataset.to_pickle(f"dataset/{name}_solution.pkl")
-    stats.to_pickle(f"dataset/{name}_stats.pkl")
-
-
 if __name__ == "__main__":
     np.random.seed(42)
 
     miplib = load_miplib_dataset()
     generated = generate_datasets(
-        set_cover_instances=0,
-        bin_packing_instances=60,
+        set_cover_instances=60,
+        bin_packing_instances=0,
         traveling_salesman_instances=0,
     )
 
