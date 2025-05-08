@@ -16,7 +16,7 @@ class Problem:
         self.A = A
 
     def __solve_with_sb(self, model: Model, max_candidates=10, logged=False):
-        from dataset.solver.strong_branching_callback import StrongBranchCallback
+        from solver.strong_branching_callback import StrongBranchCallback
         sb_callback : StrongBranchCallback = model.register_callback(StrongBranchCallback)
         sb_callback.A = self.A
         sb_callback.b = self.b
@@ -30,7 +30,7 @@ class Problem:
         assert solution is not None
 
         stats = {
-            'time_ms': (end - start).total_seconds(),
+            'time': (end - start).total_seconds(),
             'n_vars': len(self.c),
             'n_constraints': len(self.b),
             'name': self.name,

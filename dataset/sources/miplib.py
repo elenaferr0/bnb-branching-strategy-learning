@@ -8,7 +8,7 @@ import shutil
 from tqdm import tqdm
 from pysmps import smps_loader as smps
 
-from dataset.solver import Problem
+from solver import Problem
 
 
 def __download_file(url, local_filename, chunk_size=1024):

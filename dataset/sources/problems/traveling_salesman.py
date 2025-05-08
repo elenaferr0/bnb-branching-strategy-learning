@@ -1,6 +1,6 @@
 from itertools import combinations
 import numpy as np
-from dataset.solver.problem import Problem
+from solver.problem import Problem
 
 """
 Formulation

@@ -1,19 +1,15 @@
 from collections import defaultdict
-from typing import Dict, List
 
 import cplex.callbacks as cpx_cb
-import docplex.mp.model
 import math
 import numpy as np
-from cplex import Cplex
 from docplex.mp.callbacks.cb_mixin import *
 import pandas as pd
 from docplex.mp.relax_linear import LinearRelaxer
 from docplex.mp.solution import SolveSolution
 
 from solver.features import compute_features
-
-from dataset.solver.features import Params
+from solver.features import Params
 
 
 class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
@@ -53,7 +49,7 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
             return
 
         dv = self.index_to_var(best_var)
-        print(f'---> STRONG BRANCH[{self.tot_branches}] on var={dv}, score={best_score:.4e}')
+        # print(f'---> STRONG BRANCH[{self.tot_branches}] on var={dv}, score={best_score:.4e}')
         self.make_branch(obj_val, variables=[(best_var, "L", best_x_i_floor + 1)],
                          node_data=(best_var, best_x_i_floor, "UP"))
         self.make_branch(obj_val, variables=[(best_var, "U", best_x_i_floor)],
@@ -89,7 +85,6 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
                     node_depth=self.get_current_node_depth(),
                     nr_variables=self.model.number_of_variables,
                     curr_obj=obj_val,
-                    slack=self.get_linear_slacks(i),
                     down_penalty=down_degradation,
                     up_penalty=up_degradation,
                     n_branches_by_var=self.n_branches_by_var[i],
@@ -99,6 +94,7 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
                 features['score'] = np.log(score)
                 row = pd.DataFrame.from_dict(features, orient='index').T
                 self.dataset = pd.concat([self.dataset, row], ignore_index=True)
+                pass
 
         self.n_branches_by_var[best_var] += 1
         return best_var, best_x_i_floor, best_score

@@ -9,8 +9,11 @@ from sources.generator import generate_datasets
 from sources.miplib import load_miplib_dataset
 
 
-    
+
 def solve(problems, name):
+    if len(problems) == 0:
+        return
+
     dataset_name = f"dataset/{name}_solution.pkl"
     stats_name = f"dataset/{name}_stats.pkl"
 
@@ -78,4 +81,3 @@ if __name__ == "__main__":
         solve(problems['train'], f"{name}_train")
         print(f"Solving {name} test problems")
         solve(problems['test'], f"{name}_test")
-    

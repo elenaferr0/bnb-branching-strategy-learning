@@ -3,14 +3,13 @@ from math import ceil, floor
 
 
 class Params:
-    def __init__(self, var_idx: int, x_i: float, node_depth: int, nr_variables: int, curr_obj: float, slack: float,
+    def __init__(self, var_idx: int, x_i: float, node_depth: int, nr_variables: int, curr_obj: float,
                  down_penalty: float, up_penalty: float, n_branches_by_var: int, tot_branches: int):
         self.var_idx = var_idx
         self.x_i = x_i
         self.node_depth = node_depth
         self.nr_variables = nr_variables
         self.curr_obj = curr_obj
-        self.slack = slack
         self.down_penalty = down_penalty
         self.up_penalty = up_penalty
         self.n_branches_by_var = n_branches_by_var
@@ -108,7 +107,6 @@ def __dynamic_feat(params: Params):
     features['down_driebeek'] = params.down_penalty
     features['up_driebeek'] = params.up_penalty
 
-    features['slack'] = params.slack
     return features
 
 
