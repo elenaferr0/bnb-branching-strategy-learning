@@ -5,6 +5,7 @@ import cplex.callbacks as cpx_cb
 import docplex.mp.model
 import math
 import numpy as np
+from cplex import Cplex
 from docplex.mp.callbacks.cb_mixin import *
 import pandas as pd
 from docplex.mp.relax_linear import LinearRelaxer
@@ -12,12 +13,14 @@ from docplex.mp.solution import SolveSolution
 
 from solver.features import compute_features
 
+from dataset.solver.features import Params
+
 
 class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
     def __init__(self, env):
         cpx_cb.BranchCallback.__init__(self, env)
         ModelCallbackMixin.__init__(self)
-        self.nb_called = 0
+        self.tot_branches = 0
 
         # problem data, kept here for computing features
         self.A = None
@@ -25,11 +28,11 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
         self.c = None
 
         self.dataset = pd.DataFrame()
-
+        self.n_branches_by_var = defaultdict(int)
         self.strong_branching_candidates = 5  # TODO: remove this limit
 
     def __call__(self):
-        self.nb_called += 1
+        self.tot_branches += 1
         br_type = self.get_branch_type()
 
         if br_type == self.branch_type.SOS1 or br_type == self.branch_type.SOS2:
@@ -50,7 +53,7 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
             return
 
         dv = self.index_to_var(best_var)
-        print(f'---> STRONG BRANCH[{self.nb_called}] on var={dv}, score={best_score:.4e}')
+        print(f'---> STRONG BRANCH[{self.tot_branches}] on var={dv}, score={best_score:.4e}')
         self.make_branch(obj_val, variables=[(best_var, "L", best_x_i_floor + 1)],
                          node_data=(best_var, best_x_i_floor, "UP"))
         self.make_branch(obj_val, variables=[(best_var, "U", best_x_i_floor)],
@@ -69,8 +72,8 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
             down_bound = self.__solve_relaxed_subproblem(i, x_i, "DOWN")
             up_bound = self.__solve_relaxed_subproblem(i, x_i, "UP")
 
-            down_degradation = down_bound - obj_val
-            up_degradation = up_bound - obj_val
+            down_degradation = np.abs(down_bound - obj_val)
+            up_degradation = np.abs(up_bound - obj_val)
 
             score = (down_degradation * up_degradation) / np.abs(obj_val)
 
@@ -80,11 +83,24 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
                 best_x_i_floor = math.floor(x_i)
 
             if score > 0 and score != float('inf'):
-                features = compute_features(i, self.A, self.b, self.c)
+                params = Params(
+                    var_idx=i,
+                    x_i=x_i,
+                    node_depth=self.get_current_node_depth(),
+                    nr_variables=self.model.number_of_variables,
+                    curr_obj=obj_val,
+                    slack=self.get_linear_slacks(i),
+                    down_penalty=down_degradation,
+                    up_penalty=up_degradation,
+                    n_branches_by_var=self.n_branches_by_var[i],
+                    tot_branches=self.tot_branches
+                )
+                features = compute_features(params, self.A, self.b, self.c)
                 features['score'] = np.log(score)
                 row = pd.DataFrame.from_dict(features, orient='index').T
                 self.dataset = pd.concat([self.dataset, row], ignore_index=True)
 
+        self.n_branches_by_var[best_var] += 1
         return best_var, best_x_i_floor, best_score
 
     def __solve_relaxed_subproblem(self, i: int, val, constraint: str):

@@ -1,4 +1,20 @@
 import numpy as np
+from math import ceil, floor
+
+
+class Params:
+    def __init__(self, var_idx: int, x_i: float, node_depth: int, nr_variables: int, curr_obj: float, slack: float,
+                 down_penalty: float, up_penalty: float, n_branches_by_var: int, tot_branches: int):
+        self.var_idx = var_idx
+        self.x_i = x_i
+        self.node_depth = node_depth
+        self.nr_variables = nr_variables
+        self.curr_obj = curr_obj
+        self.slack = slack
+        self.down_penalty = down_penalty
+        self.up_penalty = up_penalty
+        self.n_branches_by_var = n_branches_by_var
+        self.tot_branches = tot_branches
 
 
 def __static_feat(i: int, A: np.ndarray, b: np.ndarray, c: np.ndarray):
@@ -62,8 +78,8 @@ def __static_feat(i: int, A: np.ndarray, b: np.ndarray, c: np.ndarray):
             M3_pp.append(a_ji / pos_sum if pos_sum != 0 else 0)
             M3_pm.append(a_ji / neg_sum if neg_sum != 0 else 0)
         else:
-            M3_mp.append(abs(c_i) / pos_sum if pos_sum != 0 else 0)
-            M3_mm.append(abs(c_i) / neg_sum if neg_sum != 0 else 0)
+            M3_mp.append(a_ji / pos_sum if pos_sum != 0 else 0)
+            M3_mm.append(a_ji / neg_sum if neg_sum != 0 else 0)
 
     features['M3_pp_min'] = np.min(M3_pp) if M3_pp else 0
     features['M3_pp_max'] = np.max(M3_pp) if M3_pp else 0
@@ -77,7 +93,33 @@ def __static_feat(i: int, A: np.ndarray, b: np.ndarray, c: np.ndarray):
     return features
 
 
-def compute_features(var_idx: int, A: np.ndarray, b: np.ndarray, c: np.ndarray):
-    features = __static_feat(var_idx, A, b, c)
+def __dynamic_feat(params: Params):
+    # proportion of fixed variables at the current solution
+    # depth of current node/nr of integer variables
+    features = {}
+    features['depth'] = params.node_depth / params.nr_variables
+
+    features['min_xi'] = min(params.x_i - floor(params.x_i), ceil(params.x_i) - params.x_i)
+
+    features['log_down_driebeek'] = np.log(params.down_penalty) if params.down_penalty > 0 else 0
+    features['log_up_driebeek'] = np.log(params.up_penalty) if params.up_penalty > 0 else 0
+    features['log_down_up_driebeek'] = np.log(params.down_penalty + params.up_penalty) if (
+                                                                                                  params.down_penalty + params.up_penalty) > 0 else 0
+    features['down_driebeek'] = params.down_penalty
+    features['up_driebeek'] = params.up_penalty
+
+    features['slack'] = params.slack
     return features
 
+
+def __dynamic_opt_feat(params: Params):
+    features = {'branching_ratio': params.n_branches_by_var / params.tot_branches}
+    return features
+
+
+def compute_features(params: Params, A: np.ndarray, b: np.ndarray, c: np.ndarray):
+    static = __static_feat(params.var_idx, A, b, c)
+    dynamic = __dynamic_feat(params)
+    dynamic_opt = __dynamic_opt_feat(params)
+
+    return {**static, **dynamic, **dynamic_opt}

@@ -34,7 +34,7 @@ class Problem:
             'n_vars': len(self.c),
             'n_constraints': len(self.b),
             'name': self.name,
-            'sb_decision': sb_callback.nb_called,
+            'sb_decision': sb_callback.tot_branches,
         }
         return sb_callback.dataset, stats
 
