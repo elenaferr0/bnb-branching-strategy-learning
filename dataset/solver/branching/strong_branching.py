@@ -1,21 +1,17 @@
 from collections import defaultdict
 
-import cplex.callbacks as cpx_cb
 import math
 import numpy as np
-from docplex.mp.callbacks.cb_mixin import *
 import pandas as pd
 from docplex.mp.relax_linear import LinearRelaxer
 from docplex.mp.solution import SolveSolution
 
-from solver.features import compute_features
-from solver.features import Params
+from dataset.solver.features import compute_features, Params
+from dataset.solver.branching.custom_branching import CustomBranchingCallback
 
-
-class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
+class StrongBranching(CustomBranchingCallback):
     def __init__(self, env):
-        cpx_cb.BranchCallback.__init__(self, env)
-        ModelCallbackMixin.__init__(self)
+        super().__init__(env)
         self.tot_branches = 0
 
         # problem data, kept here for computing features
@@ -25,40 +21,16 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
 
         self.dataset = pd.DataFrame()
         self.n_branches_by_var = defaultdict(int)
-        self.strong_branching_candidates = 5  # TODO: remove this limit
 
-    def __call__(self):
-        self.tot_branches += 1
-        br_type = self.get_branch_type()
-
-        if br_type == self.branch_type.SOS1 or br_type == self.branch_type.SOS2:
-            return
-
+    def _choose_branching_variable(self):
         x = self.get_values()
+        c = self.get_objective_value()
+
+        candidates = self._get_branching_candidates(x, c)
+        if not candidates:
+            return -1, -1, -1
+
         obj_val = self.get_objective_value()
-        coeffs = self.get_objective_coefficients()
-
-        fractional_vars = self.__get_fractional_vars(x, coeffs)
-
-        if not fractional_vars:
-            return
-
-        best_var, best_x_i_floor, best_score = self.__get_branching_variable(fractional_vars, obj_val)
-
-        if best_var < 0:  # No good branching candidate
-            return
-
-        dv = self.index_to_var(best_var)
-        # print(f'---> STRONG BRANCH[{self.tot_branches}] on var={dv}, score={best_score:.4e}')
-        self.make_branch(obj_val, variables=[(best_var, "L", best_x_i_floor + 1)],
-                         node_data=(best_var, best_x_i_floor, "UP"))
-        self.make_branch(obj_val, variables=[(best_var, "U", best_x_i_floor)],
-                         node_data=(best_var, best_x_i_floor, "DOWN"))
-
-    def __get_branching_variable(self, fractional_vars, obj_val):
-        # sort by closest to 0.5 and obj coefficient
-        fractional_vars.sort(key=lambda v: (-abs(v[2] - 0.5), -abs(v[3])))
-        candidates = fractional_vars[:min(self.strong_branching_candidates, len(fractional_vars))]
 
         best_score = float('-inf')
         best_var = -1
@@ -76,7 +48,7 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
             if score > best_score:
                 best_score = score
                 best_var = i
-                best_x_i_floor = math.floor(x_i)
+                best_x_i_floor = np.floor(x_i)
 
             if score > 0 and score != float('inf'):
                 params = Params(
@@ -110,13 +82,3 @@ class StrongBranchCallback(ModelCallbackMixin, cpx_cb.BranchCallback):
             return float('inf')
         else:
             return solution.objective_value
-
-    def __get_fractional_vars(self, x, c):
-        fractional_vars = []
-        feasibilities = self.get_feasibilities()
-        for j in range(len(x)):
-            if feasibilities[j] == self.feasibility_status.infeasible:
-                frac_value = x[j] - math.floor(x[j])
-                if 0.01 < frac_value < 0.99:  # Ensure variable is truly fractional
-                    fractional_vars.append((j, x[j], frac_value, c[j]))
-        return fractional_vars

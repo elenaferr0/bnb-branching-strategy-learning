@@ -1,4 +1,3 @@
-import pandas as pd
 from docplex.mp.model import Model
 from datetime import datetime
 
@@ -15,13 +14,15 @@ class Problem:
         self.b = b
         self.A = A
 
-    def __solve_with_sb(self, model: Model, max_candidates=10, logged=False):
-        from solver.strong_branching_callback import StrongBranchCallback
-        sb_callback : StrongBranchCallback = model.register_callback(StrongBranchCallback)
+    def solve_with_sb(self,max_candidates=10, logged=False):
+        model = self.__build_model()
+
+        from dataset.solver.branching.strong_branching import StrongBranching
+        sb_callback : StrongBranching = model.register_callback(StrongBranching)
         sb_callback.A = self.A
         sb_callback.b = self.b
         sb_callback.c = self.c
-        sb_callback.strong_branching_candidates = max_candidates
+        sb_callback.max_branching_candidates = max_candidates
 
         start = datetime.now()
         solution : SolveSolution = model.solve(log_output=logged)
@@ -38,7 +39,26 @@ class Problem:
         }
         return sb_callback.dataset, stats
 
-    def solve(self):
+    def solve_with_learned_sb(self, regressor, max_candidates=10, logged=False):
+        model = self.__build_model()
+        from dataset.solver.branching.learned_strong_branching import LearnedStrongBranching
+        sb_callback = model.register_callback(LearnedStrongBranching)
+        sb_callback.max_branching_candidates = max_candidates
+        sb_callback.regressor = regressor
+
+        start = datetime.now()
+        solution: SolveSolution = model.solve(log_output=logged)
+        end = datetime.now()
+
+        assert solution is not None
+
+        stats = {
+            'time': (end - start).total_seconds(),
+            'sb_decision': sb_callback.tot_branches,
+        }
+        return stats
+
+    def __build_model(self):
         model = Model(name=self.name)
 
         n_vars = len(self.c)
@@ -92,7 +112,7 @@ class Problem:
 
         model.parameters.mip.interval = 1  # Check nodes frequently
 
-        return self.__solve_with_sb(model, logged=False)
+        return model
 
     def __repr__(self):
         return f"Problem(name={self.name})"
