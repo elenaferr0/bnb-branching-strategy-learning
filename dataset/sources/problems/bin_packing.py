@@ -79,7 +79,7 @@ def __generate_problem(id: int, items: (int, int), bins: (int, int), bin_capacit
         c=c,
         lb=[0] * n_vars,
         ub=[1] * n_vars,
-        types=types,
+        constraint_types=types,
         b=b,
         A=A
     )

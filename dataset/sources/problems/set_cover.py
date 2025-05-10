@@ -73,7 +73,7 @@ def __generate_problem(id: int, universe_size_range):
         c=c,
         lb=[0] * n_subsets,
         ub=[1] * n_subsets,
-        types=types,
+        constraint_types=types,
         b=b,
         A=A,
     )

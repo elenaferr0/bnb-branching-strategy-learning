@@ -1,6 +1,5 @@
 from dataset.sources.problems.bin_packing import bin_packing
 from dataset.sources.problems.set_cover import set_cover
-from dataset.sources.problems.traveling_salesman import traveling_salesman
 
 def generate_datasets(set_cover_instances: int, bin_packing_instances: int, traveling_salesman_instances: int):
     dataset = {}

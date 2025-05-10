@@ -5,12 +5,13 @@ from docplex.mp.solution import SolveSolution
 
 
 class Problem:
-    def __init__(self, name, c, lb, ub, types, b, A):
+    def __init__(self, name, c, lb, ub, constraint_types, b, A, var_types=None,):
         self.name = name
         self.c = c
         self.lb = lb
         self.ub = ub
-        self.types = types
+        self.constraint_types = constraint_types
+        self.var_types = var_types if var_types is not None else ['B'] * len(c) # assuming binary
         self.b = b
         self.A = A
 
@@ -62,21 +63,26 @@ class Problem:
         model = Model(name=self.name)
 
         n_vars = len(self.c)
-        x = model.binary_var_list(n_vars, name='x')
+        x = []
+        for i in range(n_vars):
+            if self.var_types[i] == 'B':
+                x.append(model.binary_var(name=f"x_{i}"))
+            elif self.var_types[i] == 'C':
+                x.append(model.continuous_var(lb=self.lb[i], ub=self.ub[i], name=f"x_{i}"))
 
         model.minimize(model.sum(x[i] * self.c[i] for i in range(n_vars)))
 
         n_constraints = len(self.b)
-        if n_constraints != len(self.types):
-            raise Exception( f"Number of constraints ({n_constraints}) doesn't match number of types ({len(self.types)})")
+        if n_constraints != len(self.constraint_types):
+            raise Exception( f"Number of constraints ({n_constraints}) doesn't match number of types ({len(self.constraint_types)})")
 
-        n_constraints = len(self.types)
+        n_constraints = len(self.constraint_types)
         for i in range(n_constraints):
-            if self.types[i] == 'E':
+            if self.constraint_types[i] == 'E':
                 model.add_constraint(model.dot(x, self.A[i]) == self.b[i])
-            elif self.types[i] == 'G':
+            elif self.constraint_types[i] == 'G':
                 model.add_constraint(model.dot(x, self.A[i]) >= self.b[i])
-            elif self.types[i] == 'L':
+            elif self.constraint_types[i] == 'L':
                 model.add_constraint(model.dot(x, self.A[i]) <= self.b[i])
 
         # model.parameters.timelimit = 5
