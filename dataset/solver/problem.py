@@ -26,7 +26,7 @@ class Problem:
         sb_callback.max_branching_candidates = max_candidates
 
         start = datetime.now()
-        solution : SolveSolution = model.solve(log_output=logged)
+        solution : SolveSolution = model.solve(log_output=False)
         end = datetime.now()
 
         assert solution is not None

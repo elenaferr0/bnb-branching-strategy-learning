@@ -7,7 +7,7 @@ import numpy as np
 
 from dataset.sources.generator import generate_datasets
 from dataset.sources.miplib import load_miplib_dataset
-
+from dataset.sources.tsplib import load_tsplib_dataset
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -25,7 +25,7 @@ def solve(problems, name):
         try:
             names = stats['name'].values if stats.get('name', None) is not None else []
             if not problem.name in names:
-                solution, stats_result = problem.solve()
+                solution, stats_result = problem.solve_with_sb()
                 dataset = pd.concat([dataset, solution], ignore_index=True)
                 stats_row  = pd.DataFrame.from_dict(stats_result, orient='index').T
                 stats = pd.concat([stats, stats_row], ignore_index=True)
@@ -41,10 +41,7 @@ def solve(problems, name):
             print(f"Error solving problem {problem.name}: {e}")
             continue
 
-if __name__ == "__main__":
-    np.random.seed(42)
-
-    miplib = load_miplib_dataset()
+def export_generated():
     generated = generate_datasets(
         set_cover_instances=60,
         bin_packing_instances=0,
@@ -60,20 +57,35 @@ if __name__ == "__main__":
             'test': problems[n_train:]
         }
 
-    # for problem in miplib:
-    #     print(f"Solving {problem.name} problem {datetime.now()}")
-    #     solve([problem], "miplib")
-
-    # sort miplib problems by size (number of variables)
-    # miplib.sort(key=lambda x: len(x.c), reverse=True)
-
-    # for problem in tqdm(miplib, desc="Solving miplib problems", unit="problem"):
-    #     print(f"Solving {problem.name} problem {datetime.now()}")
-    #     solve([problem], "miplib")
-
-
     for name, problems in generated.items():
         print(f"Solving {name} problems")
         solve(problems['train'], f"{name}_train")
         print(f"Solving {name} test problems")
         solve(problems['test'], f"{name}_test")
+
+def export_miplib():
+    miplib = load_miplib_dataset()
+
+    for problem in miplib:
+        print(f"Solving {problem.name} problem {datetime.now()}")
+        solve([problem], "miplib")
+
+    # sort miplib problems by size (number of variables)
+    miplib.sort(key=lambda x: len(x.c), reverse=True)
+
+    for problem in tqdm(miplib, desc="Solving miplib problems", unit="problem"):
+        print(f"Solving {problem.name} problem {datetime.now()}")
+        solve([problem], "miplib")
+
+def export_tsplib():
+    tsplib = load_tsplib_dataset()
+    for problem in tqdm(tsplib, desc="Solving tsplib problems", unit="problem"):
+        print(f"Solving {problem.name} problem {datetime.now()}")
+        solve([problem], "tsplib")
+
+if __name__ == "__main__":
+    np.random.seed(42)
+    # export_generated()
+    # export_miplib()
+    export_tsplib()
+

@@ -1,13 +1,14 @@
 import re, os
 import tsplib95
 import numpy as np
+from tsplib95.models import StandardProblem
 
 from dataset.solver import Problem
 
 
-def tsp_to_standard_form(name, distance_matrix):
+def tsp_to_standard_form(tsplib_prb: StandardProblem):
     # Using the Miller-Tucker-Zemlin (MTZ) formulation for TSP
-    n = distance_matrix.shape[0]
+    n = tsplib_prb.dimension
 
     # Decision variables:
     # - x[i,j] = 1 if we travel from i to j, 0 otherwise (n^2 binary variables)
@@ -16,10 +17,10 @@ def tsp_to_standard_form(name, distance_matrix):
 
     # Objective: minimize sum of distances
     c = np.zeros(n*n + n)
-    for i in range(n):
-        for j in range(n):
+    for i in tsplib_prb.get_nodes():
+        for j in tsplib_prb.get_nodes():
             if i != j:
-                c[i*n + j] = distance_matrix[i, j]
+                c[i*n + j] = tsplib_prb.get_weight(i, j)
 
     # Constraints:
     # 1. Each city must be visited exactly once (n equality constraints)
@@ -91,7 +92,7 @@ def tsp_to_standard_form(name, distance_matrix):
     var_types = ['B'] * (n*n) + ['C'] * n
 
     return Problem(
-        name=name,
+        name=tsplib_prb.name,
         A=A,
         b=b,
         c=c,
@@ -101,7 +102,7 @@ def tsp_to_standard_form(name, distance_matrix):
         var_types=var_types,
     )
 
-def load_tsplib():
+def load_tsplib_dataset():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     tsplib_path = os.path.join(current_dir, "tsplib")
 
@@ -109,11 +110,5 @@ def load_tsplib():
     for filename in os.listdir(tsplib_path):
         if filename.endswith(".tsp"):
             tsplib_prob = tsplib95.load(os.path.join(tsplib_path, filename))
-            n_nodes = tsplib_prob.dimension
-            problem = tsp_to_standard_form(tsplib_prob.name, tsplib_prob.get_weight(0, n_nodes))
-            problems.append(tsplib_prob)
+            problems.append(tsp_to_standard_form(tsplib_prob))
     return problems
-
-if __name__ == "__main__":
-    probs = load_tsplib()
-    print(probs)

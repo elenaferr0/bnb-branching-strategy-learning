@@ -24,7 +24,7 @@ class StrongBranching(CustomBranchingCallback):
 
     def _choose_branching_variable(self):
         x = self.get_values()
-        c = self.get_objective_value()
+        c = self.get_objective_coefficients()
 
         candidates = self._get_branching_candidates(x, c)
         if not candidates:
