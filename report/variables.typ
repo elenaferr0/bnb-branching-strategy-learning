@@ -1,0 +1,1 @@
+#let R = $#math.bb("R")$

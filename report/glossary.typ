@@ -1,0 +1,36 @@
+#import "@preview/glossy:0.8.0": *
+
+#let defs = (
+    ILP: (
+      short: "ILP",
+      long: "Integer Linear Programming",
+      plural: "ILP",
+      longplural: "Integer Linear Programming problems"
+    ),
+    MILP: (
+      short: "MILP",
+      long: "Mixed Integer Linear Programming",
+      plural: "MILP",
+      longplural: "Mixed Integer Linear Programming problems"
+    ),
+    BnB: (
+      short: "B&B",
+      long: "Branch and Bound"
+    ),
+    SB: (
+      short: "SB",
+      long: "Strong Branching"
+    ),
+    ERT: (
+      short: "ERT",
+      long: "Extremely Randomized Trees",
+      plural: "ERTs",
+      longplural: "Extremely Randomized Trees"
+    ),
+    PCA: (
+      short: "PCA",
+      long: "Principal Component Analysis",
+    ),
+)
+
+#show: init-glossary.with(defs)
