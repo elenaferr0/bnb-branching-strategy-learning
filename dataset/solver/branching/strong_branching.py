@@ -7,9 +7,9 @@ from docplex.mp.relax_linear import LinearRelaxer
 from docplex.mp.solution import SolveSolution
 
 from dataset.solver.features import compute_features, Params
-from dataset.solver.branching.custom_branching import CustomBranchingCallback
+from dataset.solver.branching.custom_branching import CustomBranching
 
-class StrongBranching(CustomBranchingCallback):
+class StrongBranching(CustomBranching):
     def __init__(self, env, A=None, b=None, c=None):
         super().__init__(env)
         self.tot_branches = 0

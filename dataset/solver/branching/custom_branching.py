@@ -5,14 +5,14 @@ import cplex.callbacks as cpx_cb
 from math import floor
 
 
-class CustomBranchingCallback(ABC, ModelCallbackMixin, cpx_cb.BranchCallback):
+class CustomBranching(ABC, ModelCallbackMixin, cpx_cb.BranchCallback):
     def __init__(self, env):
         cpx_cb.BranchCallback.__init__(self, env)
         ModelCallbackMixin.__init__(self)
         self.tot_branches = 0
         self.max_branching_candidates = 10
-        self.mip_gap_tolerance = 1e-5  # Default MIP gap tolerance
-        self.incumbent_solution = float('inf')  # Best integer solution found so far
+        self.mip_gap_tolerance = 1e-5
+        self.incumbent_solution = float('inf')
 
     @abstractmethod
     def _choose_branching_variable(self):

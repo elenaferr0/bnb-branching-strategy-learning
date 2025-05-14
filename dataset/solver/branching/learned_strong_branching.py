@@ -2,10 +2,10 @@ import numpy as np
 from sklearn.base import RegressorMixin
 from sklearn.ensemble import ExtraTreesRegressor
 
-from dataset.solver.branching.custom_branching import CustomBranchingCallback
+from dataset.solver.branching.custom_branching import CustomBranching
 
 
-class LearnedStrongBranching(CustomBranchingCallback):
+class LearnedStrongBranching(CustomBranching):
     def __init__(self, env):
         super().__init__(env)
         self.regressor = None
