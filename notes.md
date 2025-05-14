@@ -21,6 +21,7 @@
 - callback:https://github.com/IBMDecisionOptimization/docplex-examples/blob/master/examples/mp/callbacks/branch_callback.py
 - useful explanation of regression metrics https://scikit-learn.org/stable/modules/model_evaluation.html#r2-score
 - using 5 branching limits
+- try this: https://scikit-learn.org/stable/auto_examples/ensemble/plot_bias_variance.html 
 
 # References
 - MIPLIB: 
