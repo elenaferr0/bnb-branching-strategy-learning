@@ -78,15 +78,6 @@ class StrongBranching(CustomBranching):
         self.n_branches_by_var[best_var] += 1
         return best_var, best_x_i_floor, best_score, branch_up_first
 
-    def _compute_optimality_gap(self, current_bound):
-        incumbent_solution = self.get_incumbent_objective_value()
-        if incumbent_solution == float('inf'):
-            return float('inf')
-        if self.model.objective_sense == 'min':
-            return (incumbent_solution - current_bound) / max(abs(incumbent_solution), 1e-10)
-        else:
-            return (current_bound - incumbent_solution) / max(abs(incumbent_solution), 1e-10)
-
     def _compute_degradation(self, bound, current_bound):
         if bound == float('inf'):
             return self.penalty_for_infeasibility

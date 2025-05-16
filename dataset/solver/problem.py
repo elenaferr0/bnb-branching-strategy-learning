@@ -8,7 +8,7 @@ from docplex.mp.solution import SolveSolution
 
 
 class Problem:
-    def __init__(self, name, c, lb, ub, constraint_types, b, A, var_types=None,):
+    def __init__(self, name, c, lb, ub, constraint_types, b, A, var_types=None, model=None):
         self.name = name
         self.c = c
         self.lb = lb
@@ -17,6 +17,8 @@ class Problem:
         self.var_types = var_types if var_types is not None else ['B'] * len(c) # assuming binary
         self.b = b
         self.A = A
+
+        self.model = model # keep it cached
 
     @staticmethod
     def from_model(model: Model):
@@ -57,7 +59,7 @@ class Problem:
             j = var_indices[var]
             c[j] = coef
 
-        if model.is_minimized():
+        if not model.is_minimized():
             c = -c
         
         var_types = []
@@ -78,14 +80,14 @@ class Problem:
             ub[idx] = var.ub if var.ub is not None else np.inf
 
         # assert that variable and constraint types corresponds
-        problem = Problem(name, c, lb, ub, constraint_types, b, A, var_types)
+        problem = Problem(name, c, lb, ub, constraint_types, b, A, var_types, model)
         assert problem.A.shape == (n_constraints, n_vars)
         assert problem.c.shape == (n_vars,)
         assert problem.b.shape == (n_constraints,)
         return problem
 
     def solve_with_sb(self,max_candidates=10, logged=False):
-        model = self.__build_model()
+        model = self.__build_model() if self.model is None else self.model
 
         from solver.branching.strong_branching import StrongBranching
         sb_callback : StrongBranching = model.register_callback(StrongBranching)
@@ -106,11 +108,12 @@ class Problem:
             'n_constraints': len(self.b),
             'name': self.name,
             'sb_decision': sb_callback.tot_branches,
+            'gap': sb_callback.optimality_gap,
         }
         return sb_callback.dataset, stats
 
     def solve_with_learned_sb(self, regressor, max_candidates=10, logged=False):
-        model = self.__build_model()
+        model = self.__build_model() if self.model is None else self.model
         from solver.branching.learned_strong_branching import LearnedStrongBranching
         sb_callback = model.register_callback(LearnedStrongBranching)
         sb_callback.max_branching_candidates = max_candidates

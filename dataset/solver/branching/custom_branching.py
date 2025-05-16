@@ -10,8 +10,10 @@ class CustomBranching(ABC, ModelCallbackMixin, cpx_cb.BranchCallback):
         cpx_cb.BranchCallback.__init__(self, env)
         ModelCallbackMixin.__init__(self)
         self.tot_branches = 0
-        self.max_branching_candidates = 10
+        self.max_branching_candidates = 5
         self.mip_gap_tolerance = 1e-5
+
+        self.optimality_gap = float('inf')
 
     @abstractmethod
     def _choose_branching_variable(self):
@@ -32,6 +34,7 @@ class CustomBranching(ABC, ModelCallbackMixin, cpx_cb.BranchCallback):
         obj_val = self.get_objective_value()
         dv = self.index_to_var(best_var)
         print(f'{self.model.name} ---> STRONG BRANCH[{self.tot_branches}] on var={dv}, score={best_score:.4e}, branch_up_first={branch_up_first}')
+        self.optimality_gap = self._compute_optimality_gap(obj_val)
 
         # Branch in the direction that seems most promising first
         if branch_up_first:
@@ -44,6 +47,15 @@ class CustomBranching(ABC, ModelCallbackMixin, cpx_cb.BranchCallback):
                              node_data=(best_var, best_x_i_floor, "DOWN"))
             self.make_branch(obj_val, variables=[(best_var, "L", best_x_i_floor + 1)],
                              node_data=(best_var, best_x_i_floor, "UP"))
+
+    def _compute_optimality_gap(self, current_bound):
+        incumbent_solution = self.get_incumbent_objective_value()
+        if incumbent_solution == float('inf'):
+            return float('inf')
+        if self.model.objective_sense == 'min':
+            return (incumbent_solution - current_bound) / max(abs(incumbent_solution), 1e-10)
+        else:
+            return (current_bound - incumbent_solution) / max(abs(incumbent_solution), 1e-10)
 
     def _get_branching_candidates(self, x, c):
         fractional_vars = []

@@ -8,7 +8,7 @@ import numpy as np
 from sources.generator import generate_datasets
 from sources.miplib import load_miplib_dataset
 from sources.tsplib import load_tsplib_dataset
-from perso import load_perso
+from dataset.sources.perso import load_perso
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
