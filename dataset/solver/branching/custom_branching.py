@@ -12,7 +12,6 @@ class CustomBranching(ABC, ModelCallbackMixin, cpx_cb.BranchCallback):
         self.tot_branches = 0
         self.max_branching_candidates = 10
         self.mip_gap_tolerance = 1e-5
-        self.incumbent_solution = float('inf')
 
     @abstractmethod
     def _choose_branching_variable(self):
@@ -24,17 +23,15 @@ class CustomBranching(ABC, ModelCallbackMixin, cpx_cb.BranchCallback):
         if br_type == self.branch_type.SOS1 or br_type == self.branch_type.SOS2:
             return
 
-        # Update best integer solution if available
-        if self.get_incumbent_objective_value() < self.incumbent_solution:
-            self.incumbent_solution = self.get_incumbent_objective_value()
-
         best_var, best_x_i_floor, best_score, branch_up_first = self._choose_branching_variable()
         if best_var < 0:  # No good branching candidate
+            print(f'{self.model.name} ---> PRUNE[{self.tot_branches}]')
+            self.prune()
             return
 
         obj_val = self.get_objective_value()
-        # dv = self.index_to_var(best_var)
-        # print(f'---> STRONG BRANCH[{self.tot_branches}] on var={dv}, score={best_score:.4e}, branch_up_first={branch_up_first}')
+        dv = self.index_to_var(best_var)
+        print(f'{self.model.name} ---> STRONG BRANCH[{self.tot_branches}] on var={dv}, score={best_score:.4e}, branch_up_first={branch_up_first}')
 
         # Branch in the direction that seems most promising first
         if branch_up_first:

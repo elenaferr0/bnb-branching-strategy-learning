@@ -3,7 +3,7 @@ import tsplib95
 import numpy as np
 from tsplib95.models import StandardProblem
 
-from dataset.solver import Problem
+from solver import Problem
 
 
 def tsp_to_standard_form(tsplib_prb: StandardProblem):

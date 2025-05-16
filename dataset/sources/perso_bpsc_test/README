@@ -1,0 +1,15 @@
+Set of randomly generated problems (test set): 50 problems
+
+The problems contain two types of constraints
+ - bin packing constraints: a_1 x_1 + a_2 x_2 + ... + a_n x_n <= b, with x_i binary, a_i in R
+ - set covering constraints: - a_1 x_1 - a_2 x_2 - ... - a_n x_n <= -1, with x_i binary, and a_i in {0, 1}
+
+The number of variables, the number of constraints, and the parameters of the
+problems are generated randomly from uniform distributions.
+
+Note that all problems are in the standard form, i.e.,
+
+  min c^T x
+  s.t. Ax <= b
+
+

@@ -1,4 +1,4 @@
 **/.idea/**
 **/.venv/**
-dataset/sources/miplib/collection.zip
-dataset/sources/miplib/benchmark.zip
+sources/miplib/collection.zip
+sources/miplib/benchmark.zip

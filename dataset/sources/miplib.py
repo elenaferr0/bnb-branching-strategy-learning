@@ -8,7 +8,7 @@ import shutil
 from tqdm import tqdm
 from pysmps import smps_loader as smps
 
-from dataset.solver import Problem
+from solver import Problem
 
 
 def __download_file(url, local_filename, chunk_size=1024):
@@ -117,13 +117,14 @@ def __extract_gz(parent_path: str):
 
 
 def load_mps(path: str):
-    name, _, _, _, _, types, c, A, rhs_names, rhs, _, _ = smps.load_mps(path)
+    name, _, _, _, col_types, types, c, A, rhs_names, rhs, _, _ = smps.load_mps(path)
+    print("Col types:", len(col_types), "Types:", len(types), "c:", len(c), "A:", A.shape, "rhs:", len(rhs_names), "rhs:", rhs[rhs_names[0]].shape)
     return Problem(
         name=name,
         c=c,
         lb=[0] * len(c),
         ub=[1] * len(c),
-        types=types,
+        constraint_types=types,
         b=rhs[rhs_names[0]],
         A=A,
     )

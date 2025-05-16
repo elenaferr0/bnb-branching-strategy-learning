@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.base import RegressorMixin
 from sklearn.ensemble import ExtraTreesRegressor
 
-from dataset.solver.branching.custom_branching import CustomBranching
+from solver.branching.custom_branching import CustomBranching
 
 
 class LearnedStrongBranching(CustomBranching):

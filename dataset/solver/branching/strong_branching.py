@@ -6,8 +6,8 @@ import pandas as pd
 from docplex.mp.relax_linear import LinearRelaxer
 from docplex.mp.solution import SolveSolution
 
-from dataset.solver.features import compute_features, Params
-from dataset.solver.branching.custom_branching import CustomBranching
+from solver.features import compute_features, Params
+from solver.branching.custom_branching import CustomBranching
 
 class StrongBranching(CustomBranching):
     def __init__(self, env, A=None, b=None, c=None):
@@ -79,12 +79,13 @@ class StrongBranching(CustomBranching):
         return best_var, best_x_i_floor, best_score, branch_up_first
 
     def _compute_optimality_gap(self, current_bound):
-        if self.incumbent_solution == float('inf'):
+        incumbent_solution = self.get_incumbent_objective_value()
+        if incumbent_solution == float('inf'):
             return float('inf')
         if self.model.objective_sense == 'min':
-            return (self.incumbent_solution - current_bound) / max(abs(self.incumbent_solution), 1e-10)
+            return (incumbent_solution - current_bound) / max(abs(incumbent_solution), 1e-10)
         else:
-            return (current_bound - self.incumbent_solution) / max(abs(self.incumbent_solution), 1e-10)
+            return (current_bound - incumbent_solution) / max(abs(incumbent_solution), 1e-10)
 
     def _compute_degradation(self, bound, current_bound):
         if bound == float('inf'):
