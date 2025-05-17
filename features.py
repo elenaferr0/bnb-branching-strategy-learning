@@ -4,16 +4,16 @@ from math import ceil, floor
 
 class Params:
     def __init__(self, var_idx: int, x_i: float, node_depth: int, nr_variables: int, curr_obj: float,
-                 down_penalty: float, up_penalty: float, n_branches_by_var: int, tot_branches: int):
+                 downgain: float, upgain: float, n_branches_by_var: int, n_nodes: int):
         self.var_idx = var_idx
         self.x_i = x_i
         self.node_depth = node_depth
         self.nr_variables = nr_variables
         self.curr_obj = curr_obj
-        self.down_penalty = down_penalty
-        self.up_penalty = up_penalty
+        self.downgain = downgain
+        self.upgain = upgain
         self.n_branches_by_var = n_branches_by_var
-        self.tot_branches = tot_branches
+        self.n_nodes = n_nodes
 
 
 def __static_feat(i: int, A: np.ndarray, b: np.ndarray, c: np.ndarray):
@@ -100,18 +100,18 @@ def __dynamic_feat(params: Params):
 
     features['min_xi'] = min(params.x_i - floor(params.x_i), ceil(params.x_i) - params.x_i)
 
-    features['log_down_driebeek'] = np.log(params.down_penalty) if params.down_penalty > 0 else 0
-    features['log_up_driebeek'] = np.log(params.up_penalty) if params.up_penalty > 0 else 0
-    features['log_down_up_driebeek'] = np.log(params.down_penalty + params.up_penalty) if (
-                                                                                                  params.down_penalty + params.up_penalty) > 0 else 0
-    features['down_driebeek'] = params.down_penalty
-    features['up_driebeek'] = params.up_penalty
+    features['log_down_driebeek'] = np.log(params.downgain) if params.downgain > 0 else 0
+    features['log_up_driebeek'] = np.log(params.upgain) if params.upgain > 0 else 0
+    features['log_down_up_driebeek'] = np.log(params.downgain + params.upgain) if (
+                                                                                              params.downgain + params.upgain) > 0 else 0
+    features['down_driebeek'] = params.downgain
+    features['up_driebeek'] = params.upgain
 
     return features
 
 
 def __dynamic_opt_feat(params: Params):
-    features = {'branching_ratio': params.n_branches_by_var / params.tot_branches}
+    features = {'branching_ratio': params.n_branches_by_var / params.n_nodes}
     return features
 
 

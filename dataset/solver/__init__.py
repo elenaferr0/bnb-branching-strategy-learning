@@ -1,1 +1,1 @@
-from .problem import Problem
+from strong_branching import StrongBranchingRule
