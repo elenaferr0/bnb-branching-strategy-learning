@@ -15,13 +15,30 @@
   - if there is no intersection between the feasible region and the new constraints -> no feasible solution
   - fathomed: a solution that was found but is not better than the current best solution. If I had found a better one this would become the new LB (?)
 
-- useful: https://www.ibm.com/docs/en/cofz/12.9.0?topic=optimizer-selecting-variables 
 - MKP instances: https://www.researchgate.net/publication/271198281_Benchmark_instances_for_the_Multidimensional_Knapsack_Problem
 - B&B strong branching scores: https://community.ibm.com/community/user/discussion/strong-branching-score-at-each-branch-and-bound-node?hlmlt=VT 
-- callback:https://github.com/IBMDecisionOptimization/docplex-examples/blob/master/examples/mp/callbacks/branch_callback.py
 - useful explanation of regression metrics https://scikit-learn.org/stable/modules/model_evaluation.html#r2-score
-- using 5 branching limits
-- try this: https://scikit-learn.org/stable/auto_examples/ensemble/plot_bias_variance.html 
+- https://github.com/scipopt/PySCIPOpt/issues/447
+
+Default branching rules:
+```
+ branching rule       priority maxdepth maxbddist  description
+ --------------       -------- -------- ---------  -----------
+ relpscost               10000       -1    100.0%  reliability branching on pseudo cost values
+ pscost                   2000       -1    100.0%  branching on pseudo cost values
+ inference                1000       -1    100.0%  inference history branching
+ mostinf                   100       -1    100.0%  most infeasible branching
+ leastinf                   50       -1    100.0%  least infeasible branching
+ distribution                0       -1    100.0%  branching rule based on variable influence on cumulative normal distribution of row activities
+ fullstrong                  0       -1    100.0%  full strong branching
+ cloud                       0       -1    100.0%  branching rule that considers several alternative LP optima
+ lookahead                   0       -1    100.0%  full strong branching over multiple levels
+ multaggr                    0       -1    100.0%  fullstrong branching on fractional and multi-aggregated variables
+ allfullstrong           -1000       -1    100.0%  all variables full strong branching
+ vanillafullstrong       -2000       -1    100.0%  vanilla full strong branching
+ random                -100000       -1    100.0%  random variable branching
+ nodereopt            -9000000       -1    100.0%  branching rule for node reoptimization
+```
 
 # References
 - MIPLIB: 

@@ -6,7 +6,9 @@ from pyscipopt import Branchrule
 from pyscipopt.scip import Term
 from pyscipopt.scip import Solution
 
+from learned_strong_branching import LearnedStrongBranching
 from strong_branching import StrongBranchingRule
+
 
 class Problem:
     def __init__(self, name, c, lb, ub, constraint_types, b, A, var_types=None, model=None):
@@ -23,7 +25,7 @@ class Problem:
 
     @staticmethod
     def from_model(path):
-        model : Model = Model()
+        model: Model = Model()
         model.readProblem(path)
         name = model.getProbName()
 
@@ -71,7 +73,8 @@ class Problem:
                 except ValueError:
                     # This case should ideally not happen if getVars() gets all relevant variables,
                     # but it's good practice to handle unexpected variables.
-                    print(f"Warning: Variable {var.getName()} found in constraint {con.getName()} but not in model's getVars() list.")
+                    print(
+                        f"Warning: Variable {var.getName()} found in constraint {con.getName()} but not in model's getVars() list.")
                     pass
 
             rhs = model.getRhs(con)
@@ -83,22 +86,50 @@ class Problem:
         return Problem(name, c=c, lb=[], ub=[], constraint_types=[], b=b, A=A, var_types=[], model=model)
 
     def solve_with_sb(self, logged=False):
-        model = self.__build_model() if self.model is None else self.model
+        self.model = self.__build_model() if self.model is None else self.model
+        self.basic_config(logged=logged)
+        self.disable_configs()
 
-        if not logged:
-            model.hideOutput()
-            model.setIntParam('display/verblevel', 0)  # Quiet mode
-        else:
-            model.setIntParam('display/verblevel', 3)  # Verbose output
-
-        sb = StrongBranchingRule(model, self.A, self.b, self.c, logged)
-
-        model.includeBranchrule(
+        sb = StrongBranchingRule(self.model, self.A, self.b, self.c, logged)
+        self.model.includeBranchrule(
             sb,
             "strongbranching",
             "Custom strong branching rule for learning",
             priority=1000000,  # High priority to ensure it's used
             maxdepth=-1,  # No depth limit
+            maxbounddist=1.0
+        )
+        self.model.writeProblem(f"{self.name}_sb.lp")
+
+        start = datetime.now()
+        self.model.optimize()
+        end = datetime.now()
+
+        assert self.model.getStatus() == "optimal", f"Model {self.model.getProbName()} did not solve to optimality. Status: {self.model.getStatus()}"
+
+        stats = {
+            'time': (end - start).total_seconds(),
+            'n_vars': len(self.c),
+            'n_constraints': len(self.b),
+            'name': self.name,
+            'sb_decision': sb.model.getNNodes(),
+            'gap': sb.model.getGap(),
+        }
+        self.model.freeProb()
+        return sb.dataset, stats
+
+    def solve_with_learned_sb(self, predictor, logged=False, max_nodes=-1, timelimit=-1):
+        model = self.__build_model() if self.model is None else self.model
+        self.basic_config(logged=logged, max_nodes=max_nodes, timelimit=timelimit)
+        self.disable_configs()
+
+        sb = LearnedStrongBranching(model, predictor, self.A, self.b, self.c, logged)
+        model.includeBranchrule(
+            sb,
+            "learnedstrongbranching",
+            "Custom learned strong branching rule",
+            priority=1000000,  # High priority to ensure it's used
+            maxdepth=-1,
             maxbounddist=1.0
         )
 
@@ -110,40 +141,36 @@ class Problem:
 
         stats = {
             'time': (end - start).total_seconds(),
-            'n_vars': len(self.c),
-            'n_constraints': len(self.b),
             'name': self.name,
             'sb_decision': sb.model.getNNodes(),
             'gap': sb.model.getGap(),
         }
-        return sb.dataset, stats
+        model.freeProb()
+        return stats
 
-    def solve_with_learned_sb(self, regressor, logged=False):
-        model = self.__build_model() if self.model is None else self.model
+    def solve_with_rule(self, rule: str, logged=False, max_nodes=-1, timelimit=-1):
+        self.model = self.__build_model() if self.model is None else self.model
+        self.basic_config(logged=logged, max_nodes=max_nodes, timelimit=timelimit)
+        self.disable_configs()
 
-        # Create and register the branching rule
-        # sb_callback = LearnedStrongBranchingRule()
-        # model.includeBranchrule(
-        #     sb_callback,
-        #     "learnedstrongbranching",
-        #     "Learned strong branching rule",
-        #     priority=1000000,  # High priority to ensure it's used
-        #     maxdepth=-1,       # No depth limit
-        #     maxbounddist=1.0
-        # )
+        self.model.setIntParam(f'branching/{rule}/priority', 99999999)
 
         start = datetime.now()
-
-        model.optimize()
+        self.model.optimize()
         end = datetime.now()
+
+        assert self.model.getStatus() == "optimal", f"Model {self.model.getProbName()} did not solve to optimality. Status: {self.model.getStatus()}"
 
         stats = {
             'time': (end - start).total_seconds(),
-            # 'sb_decision': sb_callback.tot_branches,
+            'name': self.name,
+            'sb_decision': self.model.getNNodes(),
+            'gap': self.model.getGap(),
         }
+        self.model.freeProb()
         return stats
 
-    def __build_model(self):
+    def __build_model(self, disable_cuts=True, disable_heuristics=True, disable_presolving=True):
         model = Model(self.name)
         n_vars = len(self.c)
         x = []
@@ -172,93 +199,37 @@ class Problem:
             elif self.constraint_types[i] == 'L':
                 model.addCons(lhs <= self.b[i])
 
-        # Disable cuts
-        model.setIntParam('separating/maxrounds', 0)
-        model.setIntParam('separating/maxroundsroot', 0)
-        model.setParam("separating/maxcuts", 0)
-        model.setParam("separating/maxcutsroot", 0)
-        model.setParam("separating/maxrounds", 0)
-        model.setParam("separating/maxroundsroot", 0)
 
-        # Disable various cutting plane methods
-        cut_types = [
-            'separating/clique', 'separating/gomory', 'separating/strongcg',
-            'separating/cmir', 'separating/flowcover', 'separating/mcf', 'separating/zerohalf',
-        ]
-        for cut_type in cut_types:
-            model.setIntParam(f'{cut_type}/freq', -1)
-
-        # Disable heuristics
-        model.setIntParam('heuristics/dps/freq', -1)
-
-        # Disable presolving
-        model.setBoolParam('lp/presolving', False)
-        model.setBoolParam('concurrent/presolvebefore', False)
-        model.setBoolParam('presolving/donotmultaggr', True)
-
-        presolving = [
-            "presolving/maxrounds",
-            "presolving/trivial/maxrounds",
-            "presolving/inttobinary/maxrounds",
-            "presolving/gateextraction/maxrounds",
-            "presolving/dualcomp/maxrounds",
-            "presolving/domcol/maxrounds",
-            "presolving/implics/maxrounds",
-            "presolving/sparsify/maxrounds",
-            "presolving/dualsparsify/maxrounds",
-            "propagating/dualfix/maxprerounds",
-            "propagating/genvbounds/maxprerounds",
-            "propagating/obbt/maxprerounds",
-            "propagating/nlobbt/maxprerounds",
-            "propagating/probing/maxprerounds",
-            "propagating/pseudoobj/maxprerounds",
-            "propagating/redcost/maxprerounds",
-            "propagating/rootredcost/maxprerounds",
-            "propagating/symmetry/maxprerounds",
-            "propagating/vbounds/maxprerounds",
-            "propagating/maxrounds",
-            "propagating/maxroundsroot",
-            "constraints/cardinality/maxprerounds",
-            "constraints/SOS1/maxprerounds",
-            "constraints/SOS2/maxprerounds",
-            "constraints/varbound/maxprerounds",
-            "constraints/knapsack/maxprerounds",
-            "constraints/setppc/maxprerounds",
-            "constraints/linking/maxprerounds",
-            "constraints/or/maxprerounds",
-            "constraints/and/maxprerounds",
-            "constraints/xor/maxprerounds",
-            "constraints/conjunction/maxprerounds",
-            "constraints/disjunction/maxprerounds",
-            "constraints/linear/maxprerounds",
-            "constraints/orbisack/maxprerounds",
-            "constraints/orbitope/maxprerounds",
-            "constraints/symresack/maxprerounds",
-            "constraints/logicor/maxprerounds",
-            "constraints/bounddisjunction/maxprerounds",
-            "constraints/cumulative/maxprerounds",
-            "constraints/nonlinear/maxprerounds",
-            "constraints/pseudoboolean/maxprerounds",
-            "constraints/superindicator/maxprerounds",
-            "constraints/indicator/maxprerounds",
-            "constraints/components/maxprerounds",
-            "presolving/maxrestarts",
-            "presolving/maxrounds",
-        ]
-
-        for presolve in presolving:
-            model.setIntParam(presolve, 0)
-
-        model.setIntParam('display/freq', 500)
-        model.setRealParam('limits/gap', 2.5)
-        model.setHeuristics(SCIP_PARAMSETTING.OFF)
-        model.setSeparating(SCIP_PARAMSETTING.OFF)
-
-
-        assert(model.getNConss() == len(self.A)), "Number of constraints in model doesn't match number of constraints in problem"
-        assert(model.getNConss() == len(self.b)), "Number of constraints in model doesn't match number of constraints in problem"
-        assert(model.getNVars() == len(self.c)), "Number of variables in model doesn't match number of variables in problem"
+        assert (model.getNConss() == len(
+            self.A)), "Number of constraints in model doesn't match number of constraints in problem"
+        assert (model.getNConss() == len(
+            self.b)), "Number of constraints in model doesn't match number of constraints in problem"
+        assert (model.getNVars() == len(
+            self.c)), "Number of variables in model doesn't match number of variables in problem"
         return model
+
+    def basic_config(self, logged=False, max_nodes=-1, timelimit=-1):
+        if self.model is None:
+            raise Exception("Model is not built yet. Call __build_model() first.")
+
+        if not logged:
+            self.model.hideOutput()
+            self.model.setIntParam('display/verblevel', 0)  # Quiet mode
+        else:
+            self.model.setIntParam('display/verblevel', 3)  # Verbose output
+
+        if max_nodes > 0:
+            self.model.setIntParam('limits/nodes', max_nodes)
+
+        if timelimit > 0:
+            self.model.setRealParam('limits/time', timelimit)
+
+        self.model.setIntParam('display/freq', 500)  # logging frequency
+
+    def disable_configs(self):
+        self.model.setPresolve(SCIP_PARAMSETTING.OFF)
+        self.model.setSeparating(SCIP_PARAMSETTING.OFF)
+        self.model.setHeuristics(SCIP_PARAMSETTING.OFF)
 
     def __repr__(self):
         return f"Problem(name={self.name})"

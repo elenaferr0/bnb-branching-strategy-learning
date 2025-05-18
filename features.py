@@ -129,13 +129,13 @@ def __dynamic_opt_feat(params: Params):
     features['quartile_75_obj_increase'] = np.percentile(params.obj_increases, 75) if params.obj_increases else 0
 
     # divide all by curr_obj
-    features['min_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
-    features['max_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
-    features['avg_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
-    features['std_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
-    features['quartile_25_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
-    features['quartile_50_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
-    features['quartile_75_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
+    features['min_obj_increase'] = features['min_obj_increase'] / params.curr_obj if params.curr_obj != 0 else 0
+    features['max_obj_increase'] = features['max_obj_increase'] / params.curr_obj if params.curr_obj != 0 else 0
+    features['avg_obj_increase'] = features['avg_obj_increase'] / params.curr_obj if params.curr_obj != 0 else 0
+    features['std_obj_increase'] = features['std_obj_increase'] / params.curr_obj if params.curr_obj != 0 else 0
+    features['quartile_25_obj_increase'] = features['quartile_25_obj_increase'] / params.curr_obj if params.curr_obj != 0 else 0
+    features['quartile_50_obj_increase'] = features['quartile_50_obj_increase'] / params.curr_obj if params.curr_obj != 0 else 0
+    features['quartile_75_obj_increase'] = features['quartile_75_obj_increase'] / params.curr_obj if params.curr_obj != 0 else 0
     return features
 
 

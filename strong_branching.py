@@ -74,7 +74,6 @@ class StrongBranchingRule(Branchrule):
             else:
                 upgain = 0
 
-
             # Update the pseudo-costs
             lpsol = branch_cands[i].getLPSol()
             if not downinf and downvalid:
@@ -91,32 +90,7 @@ class StrongBranchingRule(Branchrule):
                 if not upinf and upvalid:
                     best_cand_gain = upgain
 
-            self.n_branches_by_var[branch_cands[i].name] += 1
-            params = Params(
-                var_idx=branch_cands[i].getCol().getLPPos(),
-                x_i=branch_cands[i].getObj(),
-                node_depth=self.model.getCurrentNode().getDepth(),
-                nr_variables=self.model.getNVars(),
-                curr_obj=self.model.getLPObjVal(),
-                downgain=downgain,
-                upgain=upgain,
-                n_branches_by_var=self.n_branches_by_var[branch_cands[i].name],
-                n_nodes=self.model.getNNodes(),
-                upfrac=1-branch_cand_fracs[i],
-                downfrac=branch_cand_fracs[i],
-                obj_increases=self.obj_increases_by_var[branch_cands[i].name]
-            )
-
-            # down_degradation = np.abs(down_bound - obj_val)
-            # up_degradation = np.abs(up_bound - obj_val)
-            #
-            # score = (down_degradation * up_degradation) / np.abs(obj_val)
-
-            features = compute_features(params, self.A, self.b, self.c)
-            curr_obj = self.model.getLPObjVal()
-            features['score'] = scores[i] / np.abs(curr_obj) if curr_obj != 0 else 0
-            row = pd.DataFrame.from_dict(features, orient='index').T
-            self.dataset = pd.concat([self.dataset, row], ignore_index=True)
+            self.extract_feats(branch_cand_fracs, branch_cands, downgain, i, scores, upgain)
 
         # End strong branching
         self.model.endStrongbranch()
@@ -141,3 +115,25 @@ class StrongBranchingRule(Branchrule):
                 self.model.updateNodeLowerbound(up_child, up_bounds[best_cand_idx])
 
         return {"result": SCIP_RESULT.BRANCHED}
+
+    def extract_feats(self, branch_cand_fracs, branch_cands, downgain, i, scores, upgain):
+        self.n_branches_by_var[branch_cands[i].name] += 1
+        params = Params(
+            var_idx=branch_cands[i].getCol().getLPPos(),
+            x_i=branch_cands[i].getObj(),
+            node_depth=self.model.getCurrentNode().getDepth(),
+            nr_variables=self.model.getNVars(),
+            curr_obj=self.model.getLPObjVal(),
+            downgain=downgain,
+            upgain=upgain,
+            n_branches_by_var=self.n_branches_by_var[branch_cands[i].name],
+            n_nodes=self.model.getNNodes(),
+            upfrac=1 - branch_cand_fracs[i],
+            downfrac=branch_cand_fracs[i],
+            obj_increases=self.obj_increases_by_var[branch_cands[i].name]
+        )
+        features = compute_features(params, self.A, self.b, self.c)
+        curr_obj = self.model.getLPObjVal()
+        features['score'] = scores[i] / np.abs(curr_obj) if curr_obj != 0 else 0
+        row = pd.DataFrame.from_dict(features, orient='index').T
+        self.dataset = pd.concat([self.dataset, row], ignore_index=True)

@@ -13,11 +13,11 @@ def solve(problems, name):
     if len(problems) == 0:
         return
 
-    dataset_name = f"{current_dir}/{name}_solution.csv"
-    stats_name = f"{current_dir}/{name}_stats.csv"
+    dataset_name = f"{current_dir}/{name}_solution.pkl"
+    stats_name = f"{current_dir}/{name}_stats.pkl"
 
-    dataset = pd.read_csv(dataset_name) if os.path.exists(dataset_name) else pd.DataFrame()
-    stats = pd.read_csv(stats_name) if os.path.exists(stats_name) else pd.DataFrame()
+    dataset = pd.read_pickle(dataset_name) if os.path.exists(dataset_name) else pd.DataFrame()
+    stats = pd.read_pickle(stats_name) if os.path.exists(stats_name) else pd.DataFrame()
 
     for problem in tqdm(problems, desc=f"Solving problems {name}", unit="problem"):
         try:
@@ -30,8 +30,8 @@ def solve(problems, name):
                 print(f"Problem {problem.name} solved in {stats_result['time']} seconds")
                 # problem.model.writeProblem(filename=f"{problems}/{problem.name}.lp")
                 # overwrite dataset and stats files
-                dataset.to_csv(f"{current_dir}/{name}_solution.csv")
-                stats.to_csv(f"{current_dir}/{name}_stats.csv")
+                dataset.to_pickle(f"{current_dir}/{name}_solution.pkl")
+                stats.to_pickle(f"{current_dir}/{name}_stats.pkl")
             else:
                 print(f"Problem {problem.name} already solved, skipping.")
         except Exception as e:
@@ -170,17 +170,17 @@ def __generate_sc(id: int, universe_size_range):
     )
 
 
-def generate_datasets(set_cover_instances: int, bin_packing_instances: int, traveling_salesman_instances: int):
+def generate_datasets(set_cover_instances: int, bin_packing_instances: int):
     dataset = {}
     dataset['SC'] = set_cover(
         n_problems=set_cover_instances,
-        universe_size_range=(50, 100),
+        universe_size_range=(80, 100),
     )
 
     dataset['BP'] = bin_packing(
         n_problems=bin_packing_instances,
-        items=(10, 30),
-        bins=(5, 20),
+        items=(6, 8),
+        bins=(5, 10),
         bin_capacity=(0.5, 1.5),
         item_size=(0.1, 0.9),
     )
@@ -190,12 +190,10 @@ def generate_datasets(set_cover_instances: int, bin_packing_instances: int, trav
 
 def export_generated():
     generated = generate_datasets(
-        set_cover_instances=0,
-        bin_packing_instances=60,
-        traveling_salesman_instances=60,
+        set_cover_instances=100,
+        bin_packing_instances=100
     )
 
-    # split in train and test (80% train, 20% test)
     for name, problems in generated.items():
         n_train = int(len(problems) * 0.8)
         np.random.shuffle(problems)
@@ -203,8 +201,6 @@ def export_generated():
             'train': problems[:n_train],
             'test': problems[n_train:]
         }
-
-    generated['BP']['train'] = problems
 
     for name, problems in generated.items():
         print(f"Solving {name} problems")
@@ -230,16 +226,19 @@ def bpsc():
 
 def miplib():
     files = os.listdir("sources/miplib/filtered_collection")
-    for f in files:
-        prob = Problem.from_model(f"sources/miplib/filtered_collection/{f}")
-        solve([prob], "miplib")
+    probs = [Problem.from_model(f"sources/miplib/filtered_collection/{f}") for f in files]
+    sorted_probs = sorted(probs, key=lambda x: (len(x.c), len(x.b)))
+    solve(sorted_probs, "miplib")
+
+def orlib():
+    files = os.listdir("sources/orlib")
+    probs = [Problem.from_model(f"sources/orlib/{f}") for f in files]
+    sorted_probs = sorted(probs, key=lambda x: (len(x.c), len(x.b)))
+    solve(sorted_probs, "miplib")
 
 
 if __name__ == "__main__":
     np.random.seed(42)
-    # export_generated()
-    bpsc()
+    export_generated()
+    # bpsc()
     # miplib()
-    # export_miplib()
-    # export_tsplib()
-    # export_perso()
