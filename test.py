@@ -2,21 +2,26 @@ import pandas as pd
 
 def convert():
     files = [
-        "BP_train_solution.csv",
-        "BP_test_solution.csv",
-        "SC_train_solution.csv",
-        "SC_test_solution.csv",
+        "dataset/exported/BP_train_solution.pkl",
+        "dataset/exported/BP_test_solution.pkl",
+        "dataset/exported/SC_train_solution.pkl",
+        "dataset/exported/SC_test_solution.pkl",
+
+        "dataset/exported/BP_train_stats.pkl",
+        "dataset/exported/BP_test_stats.pkl",
+        "dataset/exported/SC_train_stats.pkl",
+        "dataset/exported/SC_test_stats.pkl",
     ]
 
+    out = "dataset/exported_csv/"
     for file in files:
-        bp = pd.read_csv(file)
-        bp = bp.drop(columns=["Unnamed: 0", "Unnamed: 0.1"])
-        bp.to_pickle(file.replace(".csv", ".pkl"))
+        bp = pd.read_pickle(file)
+        bp.to_csv(out + file.split("/")[-1].replace(".pkl", ".csv"), index=False)
 
 def pr():
-    f = "BP_train_stats.pkl"
+    f = "./dataset/exported/BP_train_solution.pkl"
     bp = pd.read_pickle(f)
     print(bp.head(10))
 
 if __name__ == "__main__":
-    pr()
+    convert()

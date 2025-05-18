@@ -99,7 +99,7 @@ class Problem:
             maxdepth=-1,  # No depth limit
             maxbounddist=1.0
         )
-        self.model.writeProblem(f"{self.name}_sb.lp")
+        self.model.writeProblem(f"random_{self.name}.lp")
 
         start = datetime.now()
         self.model.optimize()

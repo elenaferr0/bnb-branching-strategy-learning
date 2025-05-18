@@ -19,6 +19,7 @@
 - B&B strong branching scores: https://community.ibm.com/community/user/discussion/strong-branching-score-at-each-branch-and-bound-node?hlmlt=VT 
 - useful explanation of regression metrics https://scikit-learn.org/stable/modules/model_evaluation.html#r2-score
 - https://github.com/scipopt/PySCIPOpt/issues/447
+- "knee" region of the Pareto frontier (when minimizing both mse and fit time) 
 
 Default branching rules:
 ```
