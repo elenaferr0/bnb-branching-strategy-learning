@@ -4,7 +4,7 @@ from math import ceil, floor
 
 class Params:
     def __init__(self, var_idx: int, x_i: float, node_depth: int, nr_variables: int, curr_obj: float,
-                 downgain: float, upgain: float, n_branches_by_var: int, n_nodes: int):
+                 downgain: float, upgain: float, n_branches_by_var: int, n_nodes: int, downfrac: float, upfrac: float, obj_increases: list):
         self.var_idx = var_idx
         self.x_i = x_i
         self.node_depth = node_depth
@@ -14,6 +14,9 @@ class Params:
         self.upgain = upgain
         self.n_branches_by_var = n_branches_by_var
         self.n_nodes = n_nodes
+        self.down_frac = downfrac
+        self.up_frac = upfrac
+        self.obj_increases = obj_increases
 
 
 def __static_feat(i: int, A: np.ndarray, b: np.ndarray, c: np.ndarray):
@@ -100,18 +103,39 @@ def __dynamic_feat(params: Params):
 
     features['min_xi'] = min(params.x_i - floor(params.x_i), ceil(params.x_i) - params.x_i)
 
-    features['log_down_driebeek'] = np.log(params.downgain) if params.downgain > 0 else 0
-    features['log_up_driebeek'] = np.log(params.upgain) if params.upgain > 0 else 0
-    features['log_down_up_driebeek'] = np.log(params.downgain + params.upgain) if (
-                                                                                              params.downgain + params.upgain) > 0 else 0
-    features['down_driebeek'] = params.downgain
-    features['up_driebeek'] = params.upgain
+    features['log_down_penalty'] = np.log(params.downgain) / params.curr_obj if params.downgain > 0 else 0
+    features['log_up_penalty'] = np.log(params.upgain) / params.curr_obj if params.upgain > 0 else 0
+    features['log_down_up_penalty'] = np.log(params.downgain + params.upgain) / params.curr_obj if ( params.downgain + params.upgain) > 0 else 0
+    features['down_penalty'] = params.downgain / params.curr_obj if params.curr_obj != 0 else 0
+    features['up_penalty'] = params.upgain / params.curr_obj if params.curr_obj != 0 else 0
+
+    features['down_frac'] = params.down_frac
+    features['up_frac'] = params.up_frac
 
     return features
 
 
 def __dynamic_opt_feat(params: Params):
-    features = {'branching_ratio': params.n_branches_by_var / params.n_nodes}
+    features = {}
+    features['branching_ratio'] = params.n_branches_by_var / params.n_nodes
+
+    features['min_obj_increase'] = np.min(params.obj_increases) if params.obj_increases else 0
+    features['max_obj_increase'] = np.max(params.obj_increases) if params.obj_increases else 0
+    features['avg_obj_increase'] = np.mean(params.obj_increases) if params.obj_increases else 0
+    features['std_obj_increase'] = np.std(params.obj_increases) if params.obj_increases else 0
+    # quartiles
+    features['quartile_25_obj_increase'] = np.percentile(params.obj_increases, 25) if params.obj_increases else 0
+    features['quartile_50_obj_increase'] = np.percentile(params.obj_increases, 50) if params.obj_increases else 0
+    features['quartile_75_obj_increase'] = np.percentile(params.obj_increases, 75) if params.obj_increases else 0
+
+    # divide all by curr_obj
+    features['min_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
+    features['max_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
+    features['avg_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
+    features['std_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
+    features['quartile_25_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
+    features['quartile_50_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
+    features['quartile_75_obj_increase'] /= params.curr_obj if params.curr_obj != 0 else 0
     return features
 
 

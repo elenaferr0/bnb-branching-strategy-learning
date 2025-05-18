@@ -15,6 +15,7 @@ class StrongBranchingRule(Branchrule):
         self.c = c
         self.logged = logged
         self.n_branches_by_var = defaultdict(int)
+        self.obj_increases_by_var = defaultdict(list)
 
     def branchexeclp(self, allowaddcons):
         branch_cands, branch_cand_sols, branch_cand_fracs, ncands, npriocands, nimplcands = self.model.getLPBranchCands()
@@ -29,6 +30,7 @@ class StrongBranchingRule(Branchrule):
         lpobjval = self.model.getLPObjVal()
         lperror = False
         best_cand_idx = 0
+        best_cand_gain = 0
 
         # Start strong branching and iterate over the branching candidates
         self.model.startStrongbranch()
@@ -81,8 +83,13 @@ class StrongBranchingRule(Branchrule):
                 self.model.updateVarPseudocost(branch_cands[i], 1 - self.model.frac(lpsol), upgain, 1)
 
             scores[i] = self.model.getBranchScoreMultiple(branch_cands[i], [downgain, upgain])
+
             if scores[i] > scores[best_cand_idx]:
                 best_cand_idx = i
+                if not downinf and downvalid:
+                    best_cand_gain = downgain
+                if not upinf and upvalid:
+                    best_cand_gain = upgain
 
             self.n_branches_by_var[branch_cands[i].name] += 1
             params = Params(
@@ -95,7 +102,16 @@ class StrongBranchingRule(Branchrule):
                 upgain=upgain,
                 n_branches_by_var=self.n_branches_by_var[branch_cands[i].name],
                 n_nodes=self.model.getNNodes(),
+                upfrac=1-branch_cand_fracs[i],
+                downfrac=branch_cand_fracs[i],
+                obj_increases=self.obj_increases_by_var[branch_cands[i].name]
             )
+
+            # down_degradation = np.abs(down_bound - obj_val)
+            # up_degradation = np.abs(up_bound - obj_val)
+            #
+            # score = (down_degradation * up_degradation) / np.abs(obj_val)
+
             features = compute_features(params, self.A, self.b, self.c)
             curr_obj = self.model.getLPObjVal()
             features['score'] = scores[i] / np.abs(curr_obj) if curr_obj != 0 else 0
@@ -108,6 +124,9 @@ class StrongBranchingRule(Branchrule):
         # In the case of an LP error
         if lperror:
             return {"result": SCIP_RESULT.DIDNOTRUN}
+
+        var_name = branch_cands[best_cand_idx].name
+        self.obj_increases_by_var[var_name].append(best_cand_gain)
 
         # print("--> Strong branching on variable:", branch_cands[best_cand_idx].name)
         # Branch on the variable with the largest score

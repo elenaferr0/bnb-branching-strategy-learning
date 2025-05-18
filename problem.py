@@ -1,7 +1,9 @@
+from collections import defaultdict
 from datetime import datetime
 import numpy as np
-from pyscipopt import Model, quicksum
+from pyscipopt import Model, quicksum, SCIP_PARAMSETTING
 from pyscipopt import Branchrule
+from pyscipopt.scip import Term
 from pyscipopt.scip import Solution
 
 from strong_branching import StrongBranchingRule
@@ -19,8 +21,70 @@ class Problem:
 
         self.model = model
 
+    @staticmethod
+    def from_model(path):
+        model : Model = Model()
+        model.readProblem(path)
+        name = model.getProbName()
+
+        variables = model.getVars()
+        constraints = model.getConss()
+
+        # Initialize data structures
+        n_vars = len(variables)
+        n_cons = len(constraints)
+
+        # Create mapping from variable to index
+        A_data = defaultdict(float)
+        b = np.zeros(n_cons)
+        c = np.zeros(n_vars)
+
+        # Extract objective coefficients (vector c)
+        for i, var in enumerate(variables):
+            c[i] = model.getObjective().terms.get(Term(var), 0.0)
+
+        variables = model.getVars()
+        var_names = [v.name for v in variables]
+        num_vars = len(variables)
+
+        # Initialize A and b
+        A = []
+        b = []
+        constraint_senses = []
+
+        all_constraints = model.getConss()
+
+        for con in all_constraints:
+            assert con.isLinear(), "Only linear constraints are supported"
+
+            # Get coefficients for this linear constraint
+            coeffs = model.getValsLinear(con)
+
+            # Create a row for the A matrix
+            row = [0.0] * num_vars
+            for var, coeff in coeffs.items():
+                v = list(filter(lambda x: x.name == var, model.getVars()))[0]
+                try:
+                    # Find the index of the variable in our ordered list
+                    var_index = v.getIndex()
+                    row[var_index] = coeff
+                except ValueError:
+                    # This case should ideally not happen if getVars() gets all relevant variables,
+                    # but it's good practice to handle unexpected variables.
+                    print(f"Warning: Variable {var.getName()} found in constraint {con.getName()} but not in model's getVars() list.")
+                    pass
+
+            rhs = model.getRhs(con)
+            A.append(row)
+            b.append(rhs)
+
+        A = np.array(A)
+        b = np.array(b)
+        return Problem(name, c=c, lb=[], ub=[], constraint_types=[], b=b, A=A, var_types=[], model=model)
+
     def solve_with_sb(self, logged=False):
         model = self.__build_model() if self.model is None else self.model
+
         if not logged:
             model.hideOutput()
             model.setIntParam('display/verblevel', 0)  # Quiet mode
@@ -111,6 +175,10 @@ class Problem:
         # Disable cuts
         model.setIntParam('separating/maxrounds', 0)
         model.setIntParam('separating/maxroundsroot', 0)
+        model.setParam("separating/maxcuts", 0)
+        model.setParam("separating/maxcutsroot", 0)
+        model.setParam("separating/maxrounds", 0)
+        model.setParam("separating/maxroundsroot", 0)
 
         # Disable various cutting plane methods
         cut_types = [
@@ -181,8 +249,11 @@ class Problem:
         for presolve in presolving:
             model.setIntParam(presolve, 0)
 
-        # Check nodes frequently
-        model.setIntParam('display/freq', 1)
+        model.setIntParam('display/freq', 500)
+        model.setRealParam('limits/gap', 2.5)
+        model.setHeuristics(SCIP_PARAMSETTING.OFF)
+        model.setSeparating(SCIP_PARAMSETTING.OFF)
+
 
         assert(model.getNConss() == len(self.A)), "Number of constraints in model doesn't match number of constraints in problem"
         assert(model.getNConss() == len(self.b)), "Number of constraints in model doesn't match number of constraints in problem"

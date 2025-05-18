@@ -13,11 +13,11 @@ def solve(problems, name):
     if len(problems) == 0:
         return
 
-    dataset_name = f"{current_dir}/{name}_solution.pkl"
-    stats_name = f"{current_dir}/{name}_stats.pkl"
+    dataset_name = f"{current_dir}/{name}_solution.csv"
+    stats_name = f"{current_dir}/{name}_stats.csv"
 
-    dataset = pd.read_pickle(dataset_name) if os.path.exists(dataset_name) else pd.DataFrame()
-    stats = pd.read_pickle(stats_name) if os.path.exists(stats_name) else pd.DataFrame()
+    dataset = pd.read_csv(dataset_name) if os.path.exists(dataset_name) else pd.DataFrame()
+    stats = pd.read_csv(stats_name) if os.path.exists(stats_name) else pd.DataFrame()
 
     for problem in tqdm(problems, desc=f"Solving problems {name}", unit="problem"):
         try:
@@ -25,19 +25,19 @@ def solve(problems, name):
             if not problem.name in names:
                 solution, stats_result = problem.solve_with_sb(logged=True)
                 dataset = pd.concat([dataset, solution], ignore_index=True)
-                stats_row  = pd.DataFrame.from_dict(stats_result, orient='index').T
+                stats_row = pd.DataFrame.from_dict(stats_result, orient='index').T
                 stats = pd.concat([stats, stats_row], ignore_index=True)
                 print(f"Problem {problem.name} solved in {stats_result['time']} seconds")
+                # problem.model.writeProblem(filename=f"{problems}/{problem.name}.lp")
                 # overwrite dataset and stats files
-                dataset.to_pickle(f"{current_dir}/{name}_solution.pkl")
-                stats.to_pickle(f"{current_dir}/{name}_stats.pkl")
+                dataset.to_csv(f"{current_dir}/{name}_solution.csv")
+                stats.to_csv(f"{current_dir}/{name}_stats.csv")
             else:
                 print(f"Problem {problem.name} already solved, skipping.")
-        except AssertionError as e:
-            print(f"Problem has no solution: {problem.name}")
         except Exception as e:
             print(f"Error solving problem {problem.name}: {e}")
             continue
+
 
 def bin_packing(n_problems: int, items: (int, int), bins: (int, int), bin_capacity: (float, float),
                 item_size: (float, float)):
@@ -101,6 +101,7 @@ def __generate_problem(id: int, items: (int, int), bins: (int, int), bin_capacit
         b=b,
         A=A
     )
+
 
 def set_cover(n_problems: int, universe_size_range=(50, 70), seed=None):
     if seed is not None:
@@ -168,17 +169,18 @@ def __generate_sc(id: int, universe_size_range):
         A=A,
     )
 
+
 def generate_datasets(set_cover_instances: int, bin_packing_instances: int, traveling_salesman_instances: int):
     dataset = {}
     dataset['SC'] = set_cover(
         n_problems=set_cover_instances,
-        universe_size_range=(50, 80),
+        universe_size_range=(50, 100),
     )
 
     dataset['BP'] = bin_packing(
         n_problems=bin_packing_instances,
-        items=(10, 20),
-        bins=(5, 10),
+        items=(10, 30),
+        bins=(5, 20),
         bin_capacity=(0.5, 1.5),
         item_size=(0.1, 0.9),
     )
@@ -188,13 +190,10 @@ def generate_datasets(set_cover_instances: int, bin_packing_instances: int, trav
 
 def export_generated():
     generated = generate_datasets(
-        set_cover_instances=60,
-        bin_packing_instances=00,
-        traveling_salesman_instances=0,
+        set_cover_instances=0,
+        bin_packing_instances=60,
+        traveling_salesman_instances=60,
     )
-
-
-    del generated['BP']
 
     # split in train and test (80% train, 20% test)
     for name, problems in generated.items():
@@ -205,16 +204,42 @@ def export_generated():
             'test': problems[n_train:]
         }
 
+    generated['BP']['train'] = problems
+
     for name, problems in generated.items():
         print(f"Solving {name} problems")
         solve(problems['train'], f"{name}_train")
         print(f"Solving {name} test problems")
         solve(problems['test'], f"{name}_test")
 
+
+def bpsc():
+    files = os.listdir("sources/bpsc_train/")
+    probs = [Problem.from_model(f"sources/bpsc_train/{f}") for f in files[:48]]
+
+    # sort by number of variables and constraints
+    sorted_probs = sorted(probs, key=lambda x: (len(x.c), len(x.b)))
+    for prob in sorted_probs:
+        solve([prob], "bpsc_train")
+
+    files = os.listdir("sources/bpsc_test/")
+    probs = [Problem.from_model(f"sources/bpsc_test/{f}") for f in files[:12]]
+    sorted_probs = sorted(probs, key=lambda x: (len(x.c), len(x.b)))
+    for prob in sorted_probs:
+        solve([prob], "bpsc_test")
+
+def miplib():
+    files = os.listdir("sources/miplib/filtered_collection")
+    for f in files:
+        prob = Problem.from_model(f"sources/miplib/filtered_collection/{f}")
+        solve([prob], "miplib")
+
+
 if __name__ == "__main__":
     np.random.seed(42)
-    export_generated()
+    # export_generated()
+    bpsc()
+    # miplib()
     # export_miplib()
     # export_tsplib()
     # export_perso()
-

@@ -1,1 +1,0 @@
-from strong_branching import StrongBranchingRule

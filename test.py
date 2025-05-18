@@ -1,4 +1,4 @@
 import pandas as pd
 
-bp = pd.read_pickle("./SC_train_stats.pkl")
+bp = pd.read_csv("BP_train_solution.csv")
 print(bp.tail(10))
