@@ -3,7 +3,7 @@ from datetime import datetime
 import numpy as np
 from pyscipopt import Model, quicksum, SCIP_PARAMSETTING
 from pyscipopt import Branchrule
-from pyscipopt.scip import Term
+from pyscipopt.scip import Term, SCIPgetColRedcost
 from pyscipopt.scip import Solution
 
 from learned_strong_branching import LearnedStrongBranching
@@ -99,7 +99,7 @@ class Problem:
             maxdepth=-1,  # No depth limit
             maxbounddist=1.0
         )
-        self.model.writeProblem(f"random_{self.name}.lp")
+        # self.model.writeProblem(f"random_{self.name}.lp")
 
         start = datetime.now()
         self.model.optimize()

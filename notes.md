@@ -20,6 +20,13 @@
 - useful explanation of regression metrics https://scikit-learn.org/stable/modules/model_evaluation.html#r2-score
 - https://github.com/scipopt/PySCIPOpt/issues/447
 - "knee" region of the Pareto frontier (when minimizing both mse and fit time) 
+- cite for pseudo branching/hybrid https://arxiv.org/pdf/2112.08872 
+Pseudocosts measure the average gain per eliminated fractionality
+for down and up branch separately, with the average being calculated from candidates
+which we branched on in the past that correspond to the same variable. Pseudocosts
+can be calculated very fast, however, using them also creates larger trees than strong
+branching. In particular, pseudocost scores are unreliable at the top of the tree, as there
+is only little/no historic data from which the averages can be calculated
 
 Default branching rules:
 ```

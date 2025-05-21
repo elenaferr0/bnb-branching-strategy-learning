@@ -28,7 +28,6 @@ def solve(problems, name):
                 stats_row = pd.DataFrame.from_dict(stats_result, orient='index').T
                 stats = pd.concat([stats, stats_row], ignore_index=True)
                 print(f"Problem {problem.name} solved in {stats_result['time']} seconds")
-                # problem.model.writeProblem(filename=f"{problems}/{problem.name}.lp")
                 # overwrite dataset and stats files
                 dataset.to_pickle(f"{current_dir}/{name}_solution.pkl")
                 stats.to_pickle(f"{current_dir}/{name}_stats.pkl")
@@ -208,37 +207,15 @@ def export_generated():
         print(f"Solving {name} test problems")
         solve(problems['test'], f"{name}_test")
 
-
-def bpsc():
-    files = os.listdir("sources/bpsc_train/")
-    probs = [Problem.from_model(f"sources/bpsc_train/{f}") for f in files[:48]]
-
-    # sort by number of variables and constraints
-    sorted_probs = sorted(probs, key=lambda x: (len(x.c), len(x.b)))
-    for prob in sorted_probs:
-        solve([prob], "bpsc_train")
-
-    files = os.listdir("sources/bpsc_test/")
-    probs = [Problem.from_model(f"sources/bpsc_test/{f}") for f in files[:12]]
-    sorted_probs = sorted(probs, key=lambda x: (len(x.c), len(x.b)))
-    for prob in sorted_probs:
-        solve([prob], "bpsc_test")
-
-def miplib():
-    files = os.listdir("sources/miplib/filtered_collection")
-    probs = [Problem.from_model(f"sources/miplib/filtered_collection/{f}") for f in files]
-    sorted_probs = sorted(probs, key=lambda x: (len(x.c), len(x.b)))
-    solve(sorted_probs, "miplib")
-
-def orlib():
-    files = os.listdir("sources/orlib")
-    probs = [Problem.from_model(f"sources/orlib/{f}") for f in files]
-    sorted_probs = sorted(probs, key=lambda x: (len(x.c), len(x.b)))
-    solve(sorted_probs, "miplib")
-
+def export_from_folder(max_n, name, folder):
+    files = os.listdir(folder)
+    probs = [Problem.from_model(f"{folder}/{f}") for f in files]
+    sorted_probs = sorted(probs, key=lambda x: len(x.b) + len(x.c))
+    for prob in sorted_probs[:max_n]:
+        solve([prob], name)
 
 if __name__ == "__main__":
     np.random.seed(42)
-    export_generated()
-    # bpsc()
-    # miplib()
+    # export_from_folder(10, 'mknsc_train', './dataset/sources/mknsc_train')
+    prob = Problem.from_model("./dataset/sources/mknsc_train/MKNSC_135.lp")
+    solve([prob], "mknsc")
