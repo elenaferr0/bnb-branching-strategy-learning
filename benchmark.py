@@ -9,10 +9,6 @@ import kagglehub, os
 from problem import Problem, LEARNED_STRONG_BRANCHING, RELIABILITY_BRANCHING, PSEUDO_COST_BRANCHING, MOST_INFEASIBLE_BRANCHING, RANDOM_BRANCHING
 from strong_branching import StrongBranchingRule
 
-def benchmark_strategies(problems, branching_strategies, node_limits, time_limits_s):
-
-def benchmark_predictors(problems, predictors, node_limits, time_limits_s):
-
 def main():
     branching_strategies = [
         RELIABILITY_BRANCHING,

@@ -90,7 +90,7 @@ class StrongBranchingRule(Branchrule):
                 if not upinf and upvalid:
                     best_cand_gain = upgain
 
-            self.extract_feats(branch_cand_fracs, branch_cands, downgain, i, scores, upgain)
+            self.extract_feats(branch_cand_fracs, branch_cands i)
 
         # End strong branching
         self.model.endStrongbranch()
@@ -116,7 +116,7 @@ class StrongBranchingRule(Branchrule):
 
         return {"result": SCIP_RESULT.BRANCHED}
 
-    def extract_feats(self, branch_cand_fracs, branch_cands, downgain, i, scores, upgain):
+    def extract_feats(self, branch_cand_fracs, branch_cands, i, scores):
         self.n_branches_by_var[branch_cands[i].name] += 1
         params = Params(
             var_idx=branch_cands[i].getCol().getLPPos(),
@@ -124,12 +124,10 @@ class StrongBranchingRule(Branchrule):
             node_depth=self.model.getCurrentNode().getDepth(),
             nr_variables=self.model.getNVars(),
             curr_obj=self.model.getLPObjVal(),
-            downgain=downgain,
-            upgain=upgain,
             n_branches_by_var=self.n_branches_by_var[branch_cands[i].name],
             n_nodes=self.model.getNNodes(),
-            upfrac=1 - branch_cand_fracs[i],
-            downfrac=branch_cand_fracs[i],
+            upfrac=ceil(branch_cand_fracs[i]),
+            downfrac=floor(branch_cand_fracs[i]),
             obj_increases=self.obj_increases_by_var[branch_cands[i].name]
         )
         features = compute_features(params, self.A, self.b, self.c)
