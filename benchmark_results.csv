@@ -1,0 +1,7 @@
+name,strategy,time_limit,node_limit,status,gap,n_vars,n_constraints,sb_decision,time
+/Users/elenaferro/.cache/kagglehub/datasets/elenaferr0/lp-probs/versions/6/LP-Probs/miplib/p0201.lp,relpscost,5,50,optimal,0.0,201,133,70,0.10055
+/Users/elenaferro/.cache/kagglehub/datasets/elenaferr0/lp-probs/versions/6/LP-Probs/miplib/p0201.lp,relpscost,5,100,optimal,0.0,201,133,70,0.102616
+/Users/elenaferro/.cache/kagglehub/datasets/elenaferr0/lp-probs/versions/6/LP-Probs/miplib/p0201.lp,relpscost,5,1000,optimal,0.0,201,133,70,0.1020949999999999
+/Users/elenaferro/.cache/kagglehub/datasets/elenaferr0/lp-probs/versions/6/LP-Probs/miplib/p0201.lp,relpscost,5,5000,optimal,0.0,201,133,70,0.101419
+/Users/elenaferro/.cache/kagglehub/datasets/elenaferr0/lp-probs/versions/6/LP-Probs/miplib/p0201.lp,relpscost,5,10000,optimal,0.0,201,133,70,0.1023599999999999
+/Users/elenaferro/.cache/kagglehub/datasets/elenaferr0/lp-probs/versions/6/LP-Probs/miplib/p0201.lp,relpscost,60,50,optimal,0.0,201,133,70,0.10119299999999999
