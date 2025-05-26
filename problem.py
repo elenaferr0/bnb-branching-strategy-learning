@@ -108,13 +108,13 @@ class Problem:
             'n_vars': len(self.c),
             'n_constraints': len(self.b),
             'name': self.name,
-            'sb_decision': sb.model.getNNodes(),
+            'n_nodes': sb.model.getNNodes(),
             'gap': sb.model.getGap(),
         }
         self.model.freeProb()
         return sb.dataset, stats
 
-    def solve_with_rule(self, branching_strategy, predictor=None, logged=False, max_nodes=-1, timelimit=-1):
+    def solve_with_rule(self, branching_strategy, predictor=None, predictor_name=None, logged=False, max_nodes=-1, timelimit=-1):
         if self.model is None:
             self.build_model()
         self.basic_config(logged=logged)
@@ -122,6 +122,7 @@ class Problem:
 
         if branching_strategy == LEARNED_STRONG_BRANCHING:
             assert predictor is not None, "Predictor must be provided for learned strong branching"
+            assert predictor_name is not None, "Predictor name must be provided for learned strong branching"
             self.model.includeBranchrule(
                 LearnedStrongBranching(self.model, predictor, self.A, self.b, self.c, logged),
                 LEARNED_STRONG_BRANCHING,
@@ -146,9 +147,13 @@ class Problem:
             'n_vars': len(self.c),
             'n_constraints': len(self.b),
             'name': self.name,
-            'sb_decision': self.model.getNNodes(),
+            'n_nodes': self.model.getNNodes(),
             'gap': self.model.getGap(),
             'status': self.model.getStatus(),
+            'time_limit': timelimit if timelimit > 0 else -1,
+            'node_limit': max_nodes if max_nodes > 0 else -1,
+            'strategy': branching_strategy,
+            'predictor': predictor_name if branching_strategy == LEARNED_STRONG_BRANCHING else None
         }
         return stats
 
