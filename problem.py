@@ -9,7 +9,7 @@ from pyscipopt.scip import Solution
 from learned_strong_branching import LearnedStrongBranching
 from strong_branching import StrongBranchingRule
 
-MAX_BRANCHING_PRIORITY = 9999999
+MAX_BRANCHING_PRIORITY = 99999
 LEARNED_STRONG_BRANCHING = "learnedstrongbrnch"
 RELIABILITY_BRANCHING = "relpscost"
 PSEUDO_COST_BRANCHING = "pscost"
@@ -30,10 +30,10 @@ class Problem:
         self.model = model
 
     @staticmethod
-    def from_model(path):
+    def from_model(path, name):
         model = Model()
         model.readProblem(path)
-        name = model.getProbName()
+        model.setProbName(name)
 
         variables = model.getVars()
         constraints = model.getConss()
@@ -133,7 +133,13 @@ class Problem:
         else:
             self.model.setIntParam(f'branching/{branching_strategy}/priority', MAX_BRANCHING_PRIORITY)
 
-        self.model.optimize()
+        self.model.setLongintParam('limits/nodes', max_nodes if max_nodes > 0 else -1)
+        self.model.setRealParam('limits/time', timelimit if timelimit > 0 else -1)
+        try:
+            self.model.optimize()
+        except Exception as e:
+            print(f"Error during optimization: {e}")
+            return None
 
         stats = {
             'time': self.model.getSolvingTime(),
@@ -144,7 +150,6 @@ class Problem:
             'gap': self.model.getGap(),
             'status': self.model.getStatus(),
         }
-        self.model.freeProb()
         return stats
 
     def build_model(self, disable_cuts=True, disable_heuristics=True, disable_presolving=True):
