@@ -1,6 +1,10 @@
 #import "@preview/glossy:0.8.0": *
 
 #let defs = (
+    LP: (
+      short: "LP",
+      long: "Linear Programming",
+    ),
     ILP: (
       short: "ILP",
       long: "Integer Linear Programming",
@@ -20,6 +24,9 @@
     SB: (
       short: "SB",
       long: "Strong Branching"
+    ),
+    PCB: (
+      short: "Pseudo Cost Branching",
     ),
     ERT: (
       short: "ERT",

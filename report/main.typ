@@ -1,10 +1,11 @@
-#import "@elenaferr0/ieee:0.0.1": ieee
+#import "template.typ": ieee
 
 #show: ieee.with(
-  title: [Learning Branch and Bound strong branching scores via supervised learning],
-  abstract: [
-    Abstract
-  ],
+  title: [Comparing Supervised Learned Approaches for Branch & Bound Strong Branching Approximation ],
+  n-columns: 1,
+// abstract: [
+  //   Abstract
+  // ],
   authors: (
     (
       name: "Elena Ferro",
@@ -23,11 +24,10 @@
 
 // Show link underlines
 #show link: underline
-#set par(spacing: 1em)
 
 #include "sections/introduction.typ"
-#include "sections/literature-review.typ"
-#include "sections/dataset.typ"
-#include "sections/experiments.typ"
-#include "sections/results.typ"
-#include "sections/conclusion.typ"
+// #include "sections/literature-review.typ"
+// #include "sections/dataset.typ"
+// #include "sections/experiments.typ"
+// #include "sections/results.typ"
+// #include "sections/conclusion.typ"
