@@ -2,7 +2,7 @@
 #import "@preview/glossy:0.8.0": init-glossary
 
 #show : init-glossary.with(defs)
-= Dataset generation
+= Dataset generation <sec:dataset-gen>
 == Problems
 == Features
 The intuition Alvarez et al. proposed in their work is that at each node of the @BnB tree, other than determining the scores for each fractional variable the solver also computes a set of features which are then used to train the models @orig-paper. 

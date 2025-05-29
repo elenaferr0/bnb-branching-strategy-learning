@@ -26,7 +26,7 @@
 #show link: underline
 
 #include "sections/introduction.typ"
-// #include "sections/literature-review.typ"
+#include "sections/theoretical-bg.typ"
 // #include "sections/dataset.typ"
 // #include "sections/experiments.typ"
 // #include "sections/results.typ"
