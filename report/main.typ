@@ -16,7 +16,7 @@
   figure-supplement: [Fig.],
   paper-size: "a4",
   code-font-family: "Liberation Mono",
-  // body-font-size: 10pt
+  body-font-size: 11pt
 )
 
 // Additional custom styles

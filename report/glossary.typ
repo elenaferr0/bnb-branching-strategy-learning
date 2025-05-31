@@ -38,6 +38,18 @@
       short: "PCA",
       long: "Principal Component Analysis",
     ),
+    SC: (
+      short: "SC",
+      long: "Set Cover",
+    ),
+    BP: (
+      short: "BP",
+      long: "Bin Packing",
+    ),
+    MKP: (
+      short: "MKP",
+      long: "Multiple Knapsack Problem",
+    ),
 )
 
 #show: init-glossary.with(defs)

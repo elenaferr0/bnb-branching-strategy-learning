@@ -15,6 +15,30 @@
 
 = Dataset generation <sec:dataset-gen>
 == Problems
+Given the burden of solving problems with @SB, smaller instances with respect to the original experiment have been solved. Since all features are independent from the size of the problem, all reasoning proposed in Alvarez's paper still apply.
+
+Problems taken under consideration during this project fall in one of the following categories:
+- randomly generated @BP instances;
+- randomly generated @SC instances;
+- the smallest problem from the MIPLIB set #footnote[MIPLIB problems are a standard benchmark for MILP problems.]\;
+- a subset of MKNSC problems from the original experiment #footnote[https://www.montefiore.uliege.be/~ama/files/perso_mknsc_train.zip], which combine @MKP and @SC constraints;
+- a subset of BPEQ problems from the original experiment #footnote[https://www.montefiore.uliege.be/~ama/files/perso_bpeq_train.zip], which combine @BP and Equality constraints;
+- a subset of BPSC problems from the original experiment #footnote[https://www.montefiore.uliege.be/~ama/files/perso_bpsc_train.zip], which combine @BP and @SC constraints.
+
+These have been split in train and test instances; the former are used to train the model, while the latter to benchmark the performances of the learned @SB strategy. Note that the split two is done by dividing the problems before the dataset generation; in such a way, all features extracted from the test set are fully independent from the training set. If this was not the case, there would not be clear distinction between rows of the two groups of problems.
+
+#ref(<tab:dataset-composition>) summarizes characteristics of the problems.
+
+#text("TODO: COMPLETE TABLE", size: 17pt, red)
+#figure(
+  table(
+    columns: 2,
+    table.header("Problems"),
+    [randomSC], [],
+    [randomBP], [],
+  ),
+  caption: "Dataset composition",
+) <tab:dataset-composition>
 
 == Solver
 The Python APIs for the SCIP open source solver were used, specifically through the `PySCIPOpt` package #footnote[https://ibmdecisionoptzaonpypi.org/project/PySCIPOpt/1.1.2/]. Alvarez et al. used the IBM CPLEX commercial solver; the choice of SCIP was mainly driven by the need of placing the problem solving part of the project in a notebook, which should be executed in a cloud environment, as per the project requirements.
@@ -40,7 +64,7 @@ The computed features can be subdivided in three categories: static, dynamic and
 #text("TODO: CHECK MISSING VARS", size: 17pt, red)
 
 === Static features
-Given $A$, $b$ and $c$, these are constant for a given variable $i$. Their goal is to describe the variable within the problem. #ref(<cap:static-feats>) summarizes the computed static features.
+Given $A$, $b$ and $c$, these are constant for a given variable $i$. Their goal is to describe the variable within the problem. #ref(<tab:static-feats>) summarizes the computed static features.
 
 Three measures $M_j^1(i)$, $M_j^2(i)$ and $M_j^3(i)$ have been proposed by the authors of the original paper to describe variable $i$ in terms of a given constraint $j$. Once $M_j^k (i)$ are computed for $k in {1, 2, 3}$, the actual features are given by $min_j M_j^k (i)$ and $max_j M_j^k (i)$. #footnote[When describing the constraints of the problem, only extreme values are relevant]
 
@@ -59,7 +83,7 @@ $M_j^k (i)$ are computed as follows:
 
 In the following tables, when different metrics are computed for the same value, such as $min$ and $max$, they are listed in the same row separated by a comma for brevity.
 
-#ref(<cap:static-feats>) summarizes static features which have been computed. 
+#ref(<tab:static-feats>) summarizes static features which have been computed. 
 
 #let static-feats = (
   $"sign" {c_i}$,
@@ -73,7 +97,7 @@ In the following tables, when different metrics are computed for the same value,
   $min,max {M_j^(3-+) (i)}, min\/max {M_j^(3--) (i)}$
 )
 
-#feats-table(<cap:static-feats>, "Static features", static-feats)
+#feats-table(<tab:static-feats>, "Static features", static-feats)
 
 === Dynamic features
 Dynamic features aim at describing the solution of the problem at the current @BnB node.
@@ -83,20 +107,20 @@ Sensitivity analysis studies with how changes in an @LP parameter affect the opt
 The sensitivity range for an objective function coefficient of a variable represents how much that variable can increase or decrease without changing the objective value @bradley1977sensitivity.
 CPLEX provides direct access to these values #footnote[https://www.ibm.com/docs/en/icos/22.1.1?topic=o-cpxxobjsa-cpxobjsa], whereas SCIP does not. For this reason, they had to be extracted manually; their computation is rather convoluted and explaining their theoretical motivations is beyond the scope of this report.
 
-#ref(<cap:dynamic-feats>) summarizes dynamic features which have been computed.
+#ref(<tab:dynamic-feats>) summarizes dynamic features which have been computed.
 
 #let dynamic-feats = (
   $"Up and down fractionalities of" i$,
   $"Sensitivity range of the objective function coefficient of" i " " \/ |c_i|$
 )
 
-#feats-table(<cap:dynamic-feats>, "Dynamic features", dynamic-feats)
+#feats-table(<tab:dynamic-feats>, "Dynamic features", dynamic-feats)
 
 === Dynamic optimization features
 Dynamic optimization features are meant to represent the effect of variable $i$ in the optimization process.
 When branching is performed, both the objective increase and the up and down pseudocosts for each variable are stored. Again, conversely to CPLEX #footnote[https://www.ibm.com/docs/en/icos/22.1.1?topic=g-cpxxgetcallbackpseudocosts-cpxgetcallbackpseudocosts], SCIP does not provide direct access to pseudocosts, however these can be easily computed. They represent estimates of how much the objective function value will change if a specific integer variable is branched on, calculated by observing the effects of previous branching decisions on that variable.
 
-#ref(<cap:dynamic-opt-feats>) summarizes dynamic optimization features which have been computed.
+#ref(<tab:dynamic-opt-feats>) summarizes dynamic optimization features which have been computed.
 
 #let dynamic-opt-feats = (
   $min,max,"mean","std","quartiles"{"objective increases"} " " \/ "obj. value at current node"$,
@@ -104,4 +128,4 @@ When branching is performed, both the objective increase and the up and down pse
   $"times" i "has been chosen as branching variable" \/ "total number of branchings"$
 )
 
-#feats-table(<cap:dynamic-opt-feats>, "Dynamic optimization features", dynamic-opt-feats)
+#feats-table(<tab:dynamic-opt-feats>, "Dynamic optimization features", dynamic-opt-feats)
