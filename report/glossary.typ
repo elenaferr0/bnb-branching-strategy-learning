@@ -50,6 +50,14 @@
       short: "MKP",
       long: "Multiple Knapsack Problem",
     ),
+    MSE: (
+      short: "MSE",
+      long: "Mean Squared Error",
+    ),
+    RMSE: (
+      short: "RMSE",
+      long: "Root Mean Squared Error",
+    ),
 )
 
 #show: init-glossary.with(defs)

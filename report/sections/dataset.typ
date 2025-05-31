@@ -3,9 +3,9 @@
 
 #show : init-glossary.with(defs)
 
-#let feats-table = (label, caption, feats) => [
+#let feats-table = (label, caption, feats, cols: 1) => [
   #figure(
-    table( columns: 1,
+    table( columns: cols,
       ..feats.map((v) => [#v]).flatten()
     ),
     caption: caption,
@@ -39,6 +39,8 @@ These have been split in train and test instances; the former are used to train 
   ),
   caption: "Dataset composition",
 ) <tab:dataset-composition>
+
+Although the number of evaluated instances is relatively limited in size, the yielded dataset is still fairly big (around one million rows), given that it contains features for each fractional variable at each node of the @BnB tree.
 
 == Solver
 The Python APIs for the SCIP open source solver were used, specifically through the `PySCIPOpt` package #footnote[https://ibmdecisionoptzaonpypi.org/project/PySCIPOpt/1.1.2/]. Alvarez et al. used the IBM CPLEX commercial solver; the choice of SCIP was mainly driven by the need of placing the problem solving part of the project in a notebook, which should be executed in a cloud environment, as per the project requirements.
@@ -97,7 +99,7 @@ In the following tables, when different metrics are computed for the same value,
   $min,max {M_j^(3-+) (i)}, min\/max {M_j^(3--) (i)}$
 )
 
-#feats-table(<tab:static-feats>, "Static features", static-feats)
+#feats-table(<tab:static-feats>, "Static features", static-feats, cols: 2)
 
 === Dynamic features
 Dynamic features aim at describing the solution of the problem at the current @BnB node.

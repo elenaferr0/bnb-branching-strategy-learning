@@ -26,13 +26,11 @@ $ <eq:lp-relaxation>
 
 Given that the optimal solution of #ref(<eq:lp-relaxation>) is subject to fewer constraints, its feasible region will be larger than that of the original problem #ref(<eq:standard-milp>), given that variables are allowed to take fractional values. Hence, for minimization problems the optimal solution of #ref(<eq:lp-relaxation>) can only be less than or equal to the optimal solution of #ref(<eq:standard-milp>), that is, $z_L <= z$.
 
-=== Optimality gap
-The optimality gap is a metric which quantifies how close the current best integer solution (known as _incumbent_) is to the actual optimal solution. An incumbent solution is found when either an integer solution is returned by the @LP relaxation, or a leaf of the @BnB tree is reached.
+// === Optimality gap
+// The optimality gap is a metric which quantifies how close the current best integer solution (known as _incumbent_) is to the actual optimal solution. An incumbent solution is found when either an integer solution is returned by the @LP relaxation, or a leaf of the @BnB tree is reached.
 
-Given the large size the tree could attain, it is sometimes convenient to stop its exploration once the gap is below a certain threshold @ibm-gap. Let $"UB"$ be the incumbent and $"LB"$ the current best lower bound obtained from @LP relaxations. The relative gap is defined as:
-$
- "gap" = quad & (|"UB" - "LB"|)/(|"UB"|)
-$
+// Given the large size the tree could attain, it is sometimes convenient to stop its exploration once the gap is below a certain threshold @ibm-gap. Let $"UB"$ be the incumbent and $"LB"$ the current best lower bound obtained from @LP relaxations. The relative gap is defined as: $ "gap" = quad & (|"UB" - "LB"|)/(|"UB"|) $
+// #linebreak()
 
 === Branching
 Given the current subproblem with an optimal solution of the @LP relaxation $x^*$, the branching process returns the index $i in I$ of a fractional variable $x_i^* in.not ZZ$ @achterberg2005branching. It can be formalized as follows:
@@ -49,7 +47,7 @@ with $epsilon = 10^(-6)$ @achterberg2007thesis.
 
 Predicting $"score"_P (j)$ is the goal of the machine learning model which has been trained for this project.
 
-== Machine learning
+== Machine learning <sec:ml-theoretical-bg>
 This section recaps the machine learning concepts which are relevant to the experiments presented in this report. The focus is on supervised learning, specifically on a regression task which goal is to predict a continuous value corresponding to the @SB score, based on a set of features extracted from the @BnB tree.
 
 More precisely, the goal is not to find the best overall model, but rather the one which is able to better trade-off the correctness of the prediction with the time it takes to compute it. This is because in a later phase the model will be integrated in a @BnB solver, where it will be used to guide the branching process on the resolution of a set of benchmark problems.

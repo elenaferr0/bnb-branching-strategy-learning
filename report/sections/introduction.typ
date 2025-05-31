@@ -41,20 +41,20 @@ The idea of this method is to temporarily ignore the integrality constraints on 
     fill: gray.lighten(30%),
     stroke: black)
   
-  tree.tree(data, spread: 3.5, grow: 2, draw-node: (node, ..) => {
+  tree.tree(data, spread: 5, grow: 1.5, draw-node: (node, ..) => {
     circle((), radius: .45, stroke: black, fill: gray.lighten(50%))
     content((), node.content)
   }, draw-edge: (from, to, ..) => {
     line(from, to, stroke: black)
   }, name: "tree")
   
-  content((rel: (-2.1, -0.8), to: "tree.0"), [$x_1 <= 0$])
-  content((rel: (2.1, -0.8), to: "tree.0"), [$x_1 >= 1$])
-  content((rel: (-1.8, -0.9), to: "tree.0-0"), [$x_2 <= 2$])
-  content((rel: (1.8, -0.9), to: "tree.0-0"), [$x_2 >= 3$])
+  content((rel: (-1.9, -0.2), to: "tree.0"), [$x_1 <= 0$])
+  content((rel: (1.9, -0.2), to: "tree.0"), [$x_1 >= 1$])
+  content((rel: (-1.9, -0.5), to: "tree.0-0"), [$x_2 <= 2$])
+  content((rel: (1.9, -0.5), to: "tree.0-0"), [$x_2 >= 3$])
 
   content("tree.0", anchor: "north", padding: (-1.4, 0), [$x_1 = 0.75\ x_2 = 2.33$])
-  content("tree.0-0", anchor: "east", padding: (0, -2.25), [$x_2 = 2.33$])
+  content("tree.0-0", anchor: "north", padding: (-0.9, 0), [$x_2 = 2.33$])
   })),
   caption: [An example of a simple @BnB tree.]
 ) <cap:branch-n-bound>
@@ -71,11 +71,13 @@ The goal of this project is to reproduce the experiment realized by Alvarez et a
 
 Furthermore, in addition to the reproduction of the original paper experiment, the performance of several supervised learning approaches will be compared on the set of benchmark problems.
 
-== Document structure
-Below is a brief description of the content of each section of this report.
+// == Document structure
+// Below is a brief description of the content of each section of this report.
 
-@sec:theoretical-bg briefly introduces theoretical concepts from optimization theory and machine learning, in order to contextualize the presented experiments and results.
+// @sec:theoretical-bg briefly introduces theoretical concepts from optimization theory and machine learning, in order to contextualize the presented experiments and results.
 
-@sec:dataset-gen describes the dataset generation process, including considered problems, extracted features and actual implementation details.
+// @sec:dataset-gen describes the dataset generation process, including considered problems, extracted features and actual implementation details.
 
-#text("TODO", red, size: 16pt)
+// @sec:experiments presents the performed experiments, including details on the training process.
+
+// #text("TODO", red, size: 16pt)
