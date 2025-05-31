@@ -76,4 +76,6 @@ Below is a brief description of the content of each section of this report.
 
 @sec:theoretical-bg briefly introduces theoretical concepts from optimization theory and machine learning, in order to contextualize the presented experiments and results.
 
-// @sec:dataset-gen describes the dataset generation process, including considered problems, extracted features and actual implementation details.
+@sec:dataset-gen describes the dataset generation process, including considered problems, extracted features and actual implementation details.
+
+#text("TODO", red, size: 16pt)

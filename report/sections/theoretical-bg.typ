@@ -50,7 +50,10 @@ with $epsilon = 10^(-6)$ @achterberg2007thesis.
 Predicting $"score"_P (j)$ is the goal of the machine learning model which has been trained for this project.
 
 == Machine learning
-This section recaps the machine learning concepts which are relevant to the experiments presented in this report. The focus is on supervised learning regression, as the goal is to predict the @SB score (which is a continuous value) based on a set of features extracted from the @BnB tree.
+This section recaps the machine learning concepts which are relevant to the experiments presented in this report. The focus is on supervised learning, specifically on a regression task which goal is to predict a continuous value corresponding to the @SB score, based on a set of features extracted from the @BnB tree.
+
+More precisely, the goal is not to find the best overall model, but rather the one which is able to better trade-off the correctness of the prediction with the time it takes to compute it. This is because in a later phase the model will be integrated in a @BnB solver, where it will be used to guide the branching process on the resolution of a set of benchmark problems.
+ In this context, a slow but highly accurate model would not be much more useful than actually computing @SB scores, while a fast but imprecise one would yield fairly large @BnB trees and thus influence negatively the solver's performance. Since these trees can have infinitely many nodes and in each of them the model will be asked to predict scores for every fractional variable, even a small increase in the prediction time can have a significant impact on the solution time.
 
 === Linear regression
 

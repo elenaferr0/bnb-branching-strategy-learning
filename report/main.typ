@@ -3,9 +3,6 @@
 #show: ieee.with(
   title: [Comparing Supervised Learned Approaches for Branch & Bound Strong Branching Approximation ],
   n-columns: 1,
-// abstract: [
-  //   Abstract
-  // ],
   authors: (
     (
       name: "Elena Ferro",
@@ -15,19 +12,20 @@
       email: [`elena.ferro.7@studenti.unipd.it`]
     ),
   ),
-  // index-terms: ("Scientific writing", "Typesetting", "Document creation", "Syntax"),
   bibliography: bibliography("refs.bib"),
   figure-supplement: [Fig.],
   paper-size: "a4",
-  code-font-family: "Liberation Mono"
+  code-font-family: "Liberation Mono",
+  // body-font-size: 10pt
 )
 
-// Show link underlines
+// Additional custom styles
 #show link: underline
+#set table(inset: (y: 8pt))
 
 #include "sections/introduction.typ"
 #include "sections/theoretical-bg.typ"
-// #include "sections/dataset.typ"
+#include "sections/dataset.typ"
 // #include "sections/experiments.typ"
 // #include "sections/results.typ"
 // #include "sections/conclusion.typ"
