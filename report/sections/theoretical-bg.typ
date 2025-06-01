@@ -53,24 +53,16 @@ This section recaps the machine learning concepts which are relevant to the expe
 More precisely, the goal is not to find the best overall model, but rather the one which is able to better trade-off the correctness of the prediction with the time it takes to compute it. This is because in a later phase the model will be integrated in a @BnB solver, where it will be used to guide the branching process on the resolution of a set of benchmark problems.
  In this context, a slow but highly accurate model would not be much more useful than actually computing @SB scores, while a fast but imprecise one would yield fairly large @BnB trees and thus influence negatively the solver's performance. Since these trees can have infinitely many nodes and in each of them the model will be asked to predict scores for every fractional variable, even a small increase in the prediction time can have a significant impact on the solution time.
 
-=== Linear regression
+Below is a brief recap of the characteristics of techniques which have been evaluated in this project.
 
-=== Lasso
+- Linear Regression: a statistical method that models the relationship between a dependent variable and one or more independent variables by fitting a linear equation to the observed data. It assumes a linear relationship and aims to minimize the @MSE;
 
-=== Decision trees
-/*
-Decision trees are a powerful and versatile learning technique that uses hyperplanes to partition the input space into several regions, where the behavior of the studied system is simple enough. Each region is defined by a collection of inequalities involving a splitting variable and a split point. While finding the globally optimal tree structure is computationally hard, the tree learning algorithm proceeds greedily to find a local optimum by iteratively splitting nodes to minimize total local loss.
+- @LASSO: an extension of linear regression that adds a penalty term proportional to the absolute value of the magnitude of the coefficients. This penalty forces some coefficients to be exactly zero, effectively performing feature selection and improving model interpretability;
 
-Random forests combine bagging with regression trees. A random forest model consists of multiple regression trees, each trained on a different bootstrap sample. The final prediction is obtained by averaging the individual tree predictions. A key innovation of random forests is a randomization trick that decorrelates the bootstrap models by considering only a random subset of features as splitting candidates at each node, thus reducing the correlation between individual models.
+- Decision Trees: they can be used for both classification and regression; the idea is to learn simple decision rules inferred from the data features, creating a tree-like model of decisions and their possible consequences. Decision trees can handle both numerical and categorical data and are easy to interpret;
 
-Extremely randomized trees, or ExtraTrees, extend the principles of random forests by introducing even more randomization. As their name suggests, ExtraTrees take the founding ideas behind random forests further, primarily in how they construct the individual trees within the ensemble. This method computes feature importances during the learning procedure, which helps in understanding input-output correlations in the dataset.
-*/
+- Bagging and Boosting: these are ensemble methods that combine multiple models to improve overall predictive performance. Bagging (e.g., Random Forests) builds independent models from bootstrapped samples and averages their predictions, reducing variance. Boosting (e.g., Gradient Boosting) builds models sequentially, with each new model trying to correct the errors of the previous ones, primarily reducing bias.
 
-=== Bagging and boosting
-// Bagging and boosting are two popular ensemble learning techniques that combine multiple models to improve predictive performance. Bagging, or bootstrap aggregating, involves training multiple models independently on different subsets of the training data and averaging their predictions. This reduces variance and helps prevent overfitting. Random forests are a specific implementation of bagging using decision trees, where each tree is trained on a random subset of features.
+- @ERT and Random Forests: both are ensemble methods using Decision Trees. Random Forests build multiple decision trees on bootstrapped samples of the data and randomly select a subset of features at each split point. @ERT go a step further by randomly choosing both the feature and the split point, further increasing randomness and often reducing variance.
 
-// Conversely, boosting is a sequential ensemble method that combines weak learners to create a strong learner. In boosting, models are trained iteratively, with each new model focusing on correcting the errors made by the previous ones. This approach reduces bias and can lead to better performance than bagging. Gradient boosting is a popular boosting technique that optimizes a loss function by fitting new models to the residuals of the previous ones.
-
-==== @ERT:both and Random Forests
-
-==== Gradient boosting
+- Gradient Boosting: a powerful boosting technique where new models are fit to the residuals (errors) of the previous models in a sequential manner. It uses a gradient descent optimization algorithm to minimize the loss function, iteratively improving the model's predictions.

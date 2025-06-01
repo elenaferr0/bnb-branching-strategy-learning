@@ -58,6 +58,10 @@
       short: "RMSE",
       long: "Root Mean Squared Error",
     ),
+    LASSO: (
+      short: "LASSO",
+      long: "Least Absolute Shrinkage and Selection Operator",
+    ),
 )
 
 #show: init-glossary.with(defs)
