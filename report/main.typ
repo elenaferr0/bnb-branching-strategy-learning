@@ -22,6 +22,7 @@
 // Additional custom styles
 #show link: underline
 #set table(inset: (y: 8pt))
+#show figure: set block(breakable: true)
 
 #include "sections/introduction.typ"
 #include "sections/theoretical-bg.typ"

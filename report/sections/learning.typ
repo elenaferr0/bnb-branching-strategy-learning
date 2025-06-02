@@ -1,5 +1,6 @@
 #import "../glossary.typ": defs
 #import "@preview/glossy:0.8.0": init-glossary
+#import "../utils.typ": *
 
 #show : init-glossary.with(defs)
 = Experiments <sec:experiments>
@@ -18,7 +19,7 @@ The pipeline is composed of the following steps:
 
 === Metrics
 The following metrics have been employed to evaluate the performance of the trained regressors:
-- the coefficient of determination $r^2$, which is a measure representing the proportion of variance for dependent variable that's explained by an independent variable in a regression model. It represents how well the predictions approximate real data points, with 1 being the highest and 0 the lowest @cohen1988statanalysis;
+- the coefficient of determination $R^2$, which is a measure representing the proportion of variance for dependent variable that's explained by an independent variable in a regression model. It represents how well the predictions approximate real data points, with 1 being the highest and 0 the lowest @cohen1988statanalysis;
 - the @MSE, which measures the average difference between the estimated and the actual value. It corresponds to the expected value of the squared error loss, and serves to quantify the _average magnitude of the errors_. This metric is not expressed in same unit of measure as original data; to obtain such kind of measure, it's sufficient to take the square root, and the returned value corresponds to the @RMSE @hodson2022rmse.
 
 === Hyperparameter tuning
@@ -41,8 +42,35 @@ caption: "Trade-off between MSE and scoring time for different params (Random Fo
 
 
 === Results
-#text("TODO: TABLES", red, size: 16pt)
-// Brief tables of results (like the one printed by metrics)
+#let results = (
+  "ExtraTreeRegressor": (r2: 0.788336, mse: 0.267492, rmse: 0.515022, time: 0.036152),
+  "RandomForestRegressor": (r2: 0.937185, mse: 0.080208, rmse: 0.280036, time: 0.070332),
+  "DecisionTreeRegressor": (r2: 0.921463, mse: 0.098191, rmse: 0.313161, time: 0.020229),
+  "Lasso": (r2: 0.060209, mse: 1.183560, rmse: 1.086725, time: 0.022788),
+  "LinearRegression": (r2: 0.153211, mse: 1.066975, rmse: 1.031663, time: 0.038521),
+  "GreedyTreeRegressor": (r2: 0.928140, mse: 0.090546, rmse: 0.299405, time: 0.019762),
+  "BoostedRulesRegressor": (r2: 0.259335, mse: 0.931316, rmse: 0.964280, time: 0.051703),
+  "LGBMRegressor": (r2: 0.736820, mse: 0.333472, rmse: 0.575450, time: 0.042826),
+)
+
+#ref(<tab:learning-results>) shows the performance of different models with K-fold Cross Validation, evaluated using the metrics described above. The results indicate that Random Forest Regressor achieved the highest $R^2$ score. Generally, tree-based models outperformed linear ones, with Decision Trees and @ERT also showing strong performance. This is likely ascribed by the likely non-linear relationship between the features and the target variable, which tree-based models are better suited to capture.
+
+#figure(
+  table(
+    columns: 5,
+    table.header("Model", "R² Score", "MSE", "RMSE", "Score Time (s)"),
+    ..results.pairs().map(((name, (r2, mse, rmse, time))) => (
+      raw(name),
+      [#format(r2, 2)],
+      [#format(mse, 6)],
+      [#format(rmse, 6)],
+      [#format(time, 6)]
+    )).flatten()
+  ),
+  caption: "Performance of different models on the test set",
+) <tab:learning-results>
+
+
 // chart for results
 
 #ref(<img:performance-tradeoff>) shows the trade-off between @MSE and scoring time for different estimators. Ideally, optimal models should be as close as possible to the bottom left corner. The chart highlights that Decision Trees offer the best compromise, closely followed by @ERT and Random Forests.

@@ -76,7 +76,7 @@ For the purposes of this project, two callbacks have been realized:
 == Features
 The intuition Alvarez et al. proposed in their work is that at each node of the @BnB tree, other than determining the scores for each fractional variable, the solver also computes a set of features which are then used to train the models @alvarez2017bnb. 
 According to the authors, the feature computation must be efficient enough to not affect the overall performance of the solver, while also being independent of the problem size #footnote[If it wasn't, the learned models would only be able to approximate scores for problems of a fixed size.] 
-and of irrelevant changes such as rows or columns reordering. For this reason, all quantities which would be size-dependent are normalized so to represent a relative quantity rather than an absolute one.
+and of irrelevant changes such as rows or columns reordering. For this reason, all quantities which would be size-dependent are normalized so to represent a relative quantity rather than absolute ones.
 
 A total of $38$ feature has been computed, which can be divided in three categories: static, dynamic and dynamic optimization features. 
 
@@ -140,7 +140,7 @@ Furthermore, three dynamic features have been added with respect to the original
 Dynamic optimization features are meant to represent the effect of variable $i$ in the optimization process.
 When branching is performed, both the objective increase and the up and down pseudocosts for each variable are stored. Again, conversely to CPLEX #footnote[https://www.ibm.com/docs/en/icos/22.1.1?topic=g-cpxxgetcallbackpseudocosts-cpxgetcallbackpseudocosts], SCIP does not provide direct access to pseudocosts, however these can be easily computed. They represent estimates of how much the objective function value will change if a specific integer variable is branched on, calculated by observing the effects of previous branching decisions on that variable.
 
-#ref(<tab:dynamic-opt-feats>) summarizes dynamic optimization features which have been computed.
+#ref(<tab:dynamic-opt-feats>) summarizes dynamic optimization features.
 
 #let dynamic-opt-feats = (
   $min,max,"mean","std","quartiles"{"objective increases"} " " \/ "obj. value at current node"$,
