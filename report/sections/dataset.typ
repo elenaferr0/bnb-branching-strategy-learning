@@ -1,5 +1,6 @@
 #import "../glossary.typ": defs
 #import "@preview/glossy:0.8.0": init-glossary
+#import "../utils.typ": *
 
 #show : init-glossary.with(defs)
 
@@ -29,18 +30,34 @@ These have been split in train and test instances; the former are used to train 
 
 #ref(<tab:dataset-composition>) summarizes characteristics of the problems.
 
-#text("TODO: COMPLETE TABLE", size: 17pt, red)
+#let prob-summary = (
+  "bpeq": (7, 5, 2, 195.00, 108.00, 20978.00, 2830.65),
+  "bpsc": (1, 1, 0, 112.00, 97.00, 42813.00, 7873.79),
+  "miplib": (1, 1, 0, 201.00, 133.00, 50.00, 35.30),
+  "mknsc": (5, 3, 2, 196.00, 130.00, 37378.00, 3874.97),
+  "randomBP": (91, 22, 69, 57.00, 15.00, 230.00, 5.93),
+  "randomSC": (103, 20, 83, 88.00, 88.00, 32.00, 7.97),
+)
+
 #figure(
   table(
-    columns: 2,
-    table.header("Problems"),
-    [randomSC], [],
-    [randomBP], [],
+    columns: 8,
+    table.header("Category", "Tot. of problems", "Test instances", "Train instances",  "Avg. nr. of variables", "Avg. nr. of constraints", "Avg. nodes", "Avg. solution time (s)"),
+    ..prob-summary.pairs().map(((name, (n, n-test, n-train, vars, cons, nodes, time))) => (
+      raw(name),
+      [#n],
+      [#n-test],
+      [#n-train],
+      [#vars],
+      [#cons],
+      [#nodes],
+      [#format(time, 2)]
+    )).flatten()
   ),
   caption: "Dataset composition",
 ) <tab:dataset-composition>
 
-Although the number of evaluated instances is relatively limited in size, the yielded dataset is still fairly big (around one million rows), given that it contains features for each fractional variable at each node of the @BnB tree.
+Although the number of evaluated instances is relatively limited in size, the yielded dataset is still fairly big (around one million rows), given that it contains features for every fractional variable at each node of the @BnB tree.
 
 == Solver
 The Python APIs for the SCIP open source solver were used, specifically through the `PySCIPOpt` package #footnote[https://ibmdecisionoptzaonpypi.org/project/PySCIPOpt/1.1.2/]. Alvarez et al. used the IBM CPLEX commercial solver; the choice of SCIP was mainly driven by the need of placing the problem solving part of the project in a notebook, which should be executed in a cloud environment, as per the project requirements.
@@ -50,7 +67,7 @@ Note that employing SCIP's C++ APIs would have been considerably more efficient,
 The solver was configured in such a manner that heuristics, cuts and presolve options were disabled; this ensures the @BnB algorithm is the sole method used for the problem resolution.
 
 === Branching scores and features extraction
-SCIP already places at disposal the @SB strategy ready to use; however, this cannot be used to the end of this project, as at each node of the @BnB tree, other than branching the scores and features have to be stored in the dataset.
+SCIP already places at disposal the @SB strategy ready to use; however, this cannot be used to the end of this project, as other than branching, score and features have to be stored in the dataset. SCIP provides APIs to define custom branching callbacks, which then automatically invoked once they're added to a model; this functionality can be used to intercept the @BnB algorithm execution and extract the desired information.
 
 For the purposes of this project, two callbacks have been realized:
 - `StrongBranching`, used in the first phase, at dataset generation time, to extract @SB scores and features;
@@ -61,9 +78,7 @@ The intuition Alvarez et al. proposed in their work is that at each node of the 
 According to the authors, the feature computation must be efficient enough to not affect the overall performance of the solver, while also being independent of the problem size #footnote[If it wasn't, the learned models would only be able to approximate scores for problems of a fixed size.] 
 and of irrelevant changes such as rows or columns reordering. For this reason, all quantities which would be size-dependent are normalized so to represent a relative quantity rather than an absolute one.
 
-The computed features can be subdivided in three categories: static, dynamic and dynamic optimization.
-
-#text("TODO: CHECK MISSING VARS", size: 17pt, red)
+A total of $38$ feature has been computed, which can be divided in three categories: static, dynamic and dynamic optimization features. 
 
 === Static features
 Given $A$, $b$ and $c$, these are constant for a given variable $i$. Their goal is to describe the variable within the problem. #ref(<tab:static-feats>) summarizes the computed static features.
@@ -109,11 +124,14 @@ Sensitivity analysis studies with how changes in an @LP parameter affect the opt
 The sensitivity range for an objective function coefficient of a variable represents how much that variable can increase or decrease without changing the objective value @bradley1977sensitivity.
 CPLEX provides direct access to these values #footnote[https://www.ibm.com/docs/en/icos/22.1.1?topic=o-cpxxobjsa-cpxobjsa], whereas SCIP does not. For this reason, they had to be extracted manually; their computation is rather convoluted and explaining their theoretical motivations is beyond the scope of this report.
 
-#ref(<tab:dynamic-feats>) summarizes dynamic features which have been computed.
+Furthermore, three dynamic features have been added with respect to the original experiment. These have been suggested in another work by Alvarez et al. @alvarez2016thesis. These are marked with a leading asterisk (\*) in #ref(<tab:dynamic-feats>).
 
 #let dynamic-feats = (
   $"Up and down fractionalities of" i$,
-  $"Sensitivity range of the objective function coefficient of" i " " \/ |c_i|$
+  $"Sensitivity range of the objective function coefficient of" i " " \/ |c_i|$,
+  $*"Node depth of the current node" \/ "total number of nodes in the tree"$,
+  $*"Number of fixed variables at the current node" \/ "total number of variables"$,
+  $* min {x_i - floor(x_i), ceil(x_i) - x_i} $
 )
 
 #feats-table(<tab:dynamic-feats>, "Dynamic features", dynamic-feats)
