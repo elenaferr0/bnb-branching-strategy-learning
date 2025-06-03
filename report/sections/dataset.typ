@@ -57,7 +57,7 @@ These have been split in train and test instances; the former are used to train 
   caption: "Dataset composition",
 ) <tab:dataset-composition>
 
-Although the number of evaluated instances is relatively limited in size, the yielded dataset is still fairly big (around one million rows), given that it contains features for every fractional variable at each node of the @BnB tree.
+Although the number of evaluated instances is relatively limited in size, the yielded dataset is still fairly big (around 700 thousand rows), given that it contains features for every fractional variable at each node of the @BnB tree.
 
 == Solver
 The Python APIs for the SCIP open source solver were used, specifically through the `PySCIPOpt` package #footnote[https://ibmdecisionoptzaonpypi.org/project/PySCIPOpt/1.1.2/]. Alvarez et al. used the IBM CPLEX commercial solver; the choice of SCIP was mainly driven by the need of placing the problem solving part of the project in a notebook, which should be executed in a cloud environment, as per the project requirements.
