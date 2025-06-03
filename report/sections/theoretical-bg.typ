@@ -24,7 +24,7 @@ $
  &x_i in RR_+ & forall i in C
 $ <eq:lp-relaxation>
 
-Given that the optimal solution of #ref(<eq:lp-relaxation>) is subject to fewer constraints, its feasible region will be larger than that of the original problem #ref(<eq:standard-milp>), given that variables are allowed to take fractional values. Hence, for minimization problems the optimal solution of #ref(<eq:lp-relaxation>) can only be less than or equal to the optimal solution of #ref(<eq:standard-milp>), that is, $z_L <= z$.
+Given that the optimal solution of #ref(<eq:lp-relaxation>) is subject to fewer constraints, its feasible region will be larger than that of the original problem #ref(<eq:standard-milp>). Hence, for minimization problems the optimal solution of #ref(<eq:lp-relaxation>) can only be less than or equal to the optimal solution of #ref(<eq:standard-milp>), that is, $z_L <= z$.
 
 // === Optimality gap
 // The optimality gap is a metric which quantifies how close the current best integer solution (known as _incumbent_) is to the actual optimal solution. An incumbent solution is found when either an integer solution is returned by the @LP relaxation, or a leaf of the @BnB tree is reached.
@@ -35,7 +35,7 @@ Given that the optimal solution of #ref(<eq:lp-relaxation>) is subject to fewer 
 === Branching
 Given the current subproblem with an optimal solution of the @LP relaxation $x^*$, the branching process returns the index $i in I$ of a fractional variable $x_i^* in.not ZZ$ @achterberg2005branching. It can be formalized as follows:
 + let $C = {i in I | x^*_i in.not ZZ}$ be the set of branching candidates, i.e. the indices of fractional variables;
-+ compute a score $s_i in RR$ for all $i in C$. This is computed differently depending on the chosen branching strategy;
++ compute a score $s_i in RR$ for all $i in C$, according to the chosen branching strategy;
 + select the index which maximizes the score, that is $i in C$ such that $s_i = max_(j in C) {s_j}$.
 
 The focus of this project is on the Full @SB:long strategy, commonly referred to as @SB:long for simplicity. The idea of this rule is to compute the improvement which would be gained in the left and right subtrees by branching on each fractional variable @deystrongbranching. A _combined score_ is then computed as a function of the two improvements. There exist several functions which can be used to this end, for instance the _product score function_, which is the default one in the solver which has been used in this project, SCIP #footnote[https://pyscipopt.readthedocs.io/en/latest/index.html].
