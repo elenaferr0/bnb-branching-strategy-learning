@@ -18,7 +18,7 @@ the @BnB algorithm is a commonly employed in these cases @land1960automatic.
 #footnote[When integrality constraints are introduced, the feasible region of the problem becomes a non-convex set of isolated points, hence it's not possible to move smoothly from one feasible integer solution to another, as would instead be possible for continuous regions. For this reason, algorithms such as the Simplex method cannot be applied.]\;
 The idea of this method is to temporarily ignore the integrality constraints on the variables and solve the @LP relaxation of the problem #footnote[The LP relaxation is a modified version of a problem where the integrality constraints on some or all variables are removed, allowing them to take continuous (fractional) values.]\; this is convenient as the relaxation is solvable efficiently using for instance the Simplex method. Its solution provides an optimistical bound for the original @ILP problem. The @LP relaxation might yield a fractional value for one of the originally-integer variables; if this happens, one of the fractional variables $x$ is chosen as a _branching variable_. Two subproblems are created by adding a new constraint which forces the variable to be $x <= floor(x)$ and $x >= ceil(x)$ in the left and right subtrees respectively: since $x$ should have an integer value, it must certainly hold that its value in the solution of the @ILP problem is either less than or equal to its floor or greater than its ceiling. This procedure is then repeated at each node until a solution is found (not necessarily an optimal one) or the entire search tree has been explored.
 
-#ref(<cap:branch-n-bound>) shows an example of a simple @BnB tree: at the root node $A$ variables $x_1$ and $x_2$ have fractional values; $x_1$ is chosen as a branching variable and the constraints $x_1 <= 0$ and $x_1 >= 1$ are added. Equivalently, this is done at node $B$ for variable $x_2$.
+// #ref(<cap:branch-n-bound>) shows an example of a simple @BnB tree: at the root node $A$ variables $x_1$ and $x_2$ have fractional values; $x_1$ is chosen as a branching variable and the constraints $x_1 <= 0$ and $x_1 >= 1$ are added. Equivalently, this is done at node $B$ for variable $x_2$.
 
 #let data = (
   [A], // Root node
@@ -32,32 +32,32 @@ The idea of this method is to temporarily ignore the integrality constraints on 
   )
 )
 
-#figure(
-  pad(
-    y: 15pt,
-    canvas({
-  import draw: *
-  set-style(content: (padding: .2),
-    fill: gray.lighten(30%),
-    stroke: black)
+// #figure(
+//   pad(
+//     y: 15pt,
+//     canvas({
+//   import draw: *
+//   set-style(content: (padding: .2),
+//     fill: gray.lighten(30%),
+//     stroke: black)
   
-  tree.tree(data, spread: 5, grow: 1.5, draw-node: (node, ..) => {
-    circle((), radius: .45, stroke: black, fill: gray.lighten(50%))
-    content((), node.content)
-  }, draw-edge: (from, to, ..) => {
-    line(from, to, stroke: black)
-  }, name: "tree")
+//   tree.tree(data, spread: 5, grow: 1.5, draw-node: (node, ..) => {
+//     circle((), radius: .45, stroke: black, fill: gray.lighten(50%))
+//     content((), node.content)
+//   }, draw-edge: (from, to, ..) => {
+//     line(from, to, stroke: black)
+//   }, name: "tree")
   
-  content((rel: (-1.9, -0.2), to: "tree.0"), [$x_1 <= 0$])
-  content((rel: (1.9, -0.2), to: "tree.0"), [$x_1 >= 1$])
-  content((rel: (-1.9, -0.5), to: "tree.0-0"), [$x_2 <= 2$])
-  content((rel: (1.9, -0.5), to: "tree.0-0"), [$x_2 >= 3$])
+//   content((rel: (-1.9, -0.2), to: "tree.0"), [$x_1 <= 0$])
+//   content((rel: (1.9, -0.2), to: "tree.0"), [$x_1 >= 1$])
+//   content((rel: (-1.9, -0.5), to: "tree.0-0"), [$x_2 <= 2$])
+//   content((rel: (1.9, -0.5), to: "tree.0-0"), [$x_2 >= 3$])
 
-  content("tree.0", anchor: "north", padding: (-1.4, 0), [$x_1 = 0.75\ x_2 = 2.33$])
-  content("tree.0-0", anchor: "north", padding: (-0.9, 0), [$x_2 = 2.33$])
-  })),
-  caption: [An example of a simple @BnB tree.]
-) <cap:branch-n-bound>
+//   content("tree.0", anchor: "north", padding: (-1.4, 0), [$x_1 = 0.75\ x_2 = 2.33$])
+//   content("tree.0-0", anchor: "north", padding: (-0.9, 0), [$x_2 = 2.33$])
+//   })),
+//   caption: [An example of a simple @BnB tree.]
+// ) <cap:branch-n-bound>
 
 
 @BnB is guaranteed to find the optimal solution, however the convergence might be slow for large problems. One the factors that influences its performance is the choice of the variable to branch on;

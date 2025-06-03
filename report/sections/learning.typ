@@ -37,33 +37,19 @@ Intuitively, for Pareto optimal estimators there is no way to improve the @MSE w
   "../imgs/params_tradeoff.png",
   width: 55%
 ),
-caption: "Trade-off between MSE and scoring time for different params (Random Forest)",) <img:params-tradeoff>
+caption: "Trade-off between MSE and scoring time for different params (Decision Tree)",) <img:params-tradeoff>
 
 
 === Results
-/*
-Model 	R² Score 	MSE 	RMSE 	Score Time (s)
-0 	LGBMRegressor 	0.717957 	0.357070 	0.595730 	0.023744
-1 	ExtraTreeRegressor 	0.829620 	0.215618 	0.462997 	0.021672
-2 	RandomForestRegressor 	0.937185 	0.080208 	0.280036 	0.031219
-3 	DecisionTreeRegressor 	0.928140 	0.090546 	0.299405 	0.011571
-4 	Lasso 	0.152269 	1.068145 	1.032234 	0.011963
-5 	LinearRegression 	0.153211 	1.066975 	1.031663 	0.014096
-6 	GreedyTreeRegressor 	0.902163 	0.124540 	0.350215 	0.011377
-7 	BoostedRulesRegressor 	0.786839 	0.269720 	0.517449 	0.021537
-8 	LGBMRegressor 	0.736820 	0.333472 	0.575450 	0.033091
-
-*/
 #let results = (
-  "ExtraTreeRegressor": (r2: 0.829620, mse: 0.215618, rmse: 0.462997, time: 0.021672),
-  "RandomForestRegressor": (r2: 0.937185, mse: 0.080208, rmse: 0.280036, time: 0.031219),
-  "DecisionTreeRegressor": (r2: 0.928140, mse: 0.090546, rmse: 0.299405, time: 0.011571),
-  "Lasso": (r2: 0.152269, mse: 1.068145, rmse: 1.032234, time: 0.011963),
-  "LinearRegression": (r2: 0.153211, mse: 1.066975, rmse: 1.031663, time: 0.014096),
-  "GreedyTreeRegressor": (r2: 0.902163, mse: 0.124540, rmse: 0.350215, time: 0.011377),
-  "BoostedRulesRegressor": (r2: 0.786839, mse: 0.269720, rmse: 0.517449, time: 0.021537),
-  "LGBMRegressor": (r2: 0.736820, mse: 0.333472, rmse: 0.575450, time: 0.033091)
-
+  "ExtraTreeRegressor": (r2: 0.829620, mse: 0.215618, rmse: 0.462997, time: 0.038954),
+  "RandomForestRegressor": (r2: 0.937185, mse: 0.080208, rmse: 0.280036, time: 0.048526),
+  "DecisionTreeRegressor": (r2: 0.928140, mse: 0.090546, rmse: 0.299405, time: 0.022248),
+  "Lasso": (r2: 0.153085, mse: 1.067132, rmse: 1.031740, time: 0.028760),
+  "LinearRegression": (r2: 0.153211, mse: 1.066975, rmse: 1.031663, time: 0.026648),
+  "GreedyTreeRegressor": (r2: 0.726101, mse: 0.346697, rmse: 0.586997, time: 0.021616),
+  "BoostedRulesRegressor": (r2: 0.805683, mse: 0.247500, rmse: 0.494309, time: 0.065747),
+  "LGBMRegressor": (r2: 0.717957, mse: 0.357070, rmse: 0.595730, time: 0.040210)
 )
 
 #ref(<tab:learning-results>) shows the performance of different models with K-fold Cross Validation, evaluated using the metrics described above. The results indicate that Random Forest Regressor achieved the highest $R^2$ score. Generally, tree-based models outperformed linear ones, with Decision Trees and @ERT also showing strong performance. This is likely ascribed by the likely non-linear relationship between the features and the target variable, which tree-based models are better suited to capture.
@@ -86,10 +72,10 @@ Model 	R² Score 	MSE 	RMSE 	Score Time (s)
 
 // chart for results
 
-#ref(<img:performance-tradeoff>) shows the trade-off between @MSE and scoring time for different estimators. Ideally, optimal models should be as close as possible to the bottom left corner. The chart highlights that Decision Trees offer the best compromise, followed by @ERT, Boosted Rules and LGBMRegressor.
+#ref(<img:performance-tradeoff>) shows the trade-off between @MSE and scoring time for different estimators. Ideally, optimal models should be as close as possible to the bottom left corner. The chart highlights that Decision Trees offer the best compromise, followed by @ERT, Random Forests and Greedy Tree Regressor.
 
 #figure(image(
-  "../imgs/model_performance_tradeoff.png",
+  "../imgs/models_tradeoff.png",
   width: 60%
 ),
 caption: "Trade-off between MSE and scoring time for different models",

@@ -14,7 +14,7 @@
   ),
   bibliography: bibliography("refs.bib"),
   figure-supplement: [Fig.],
-  paper-size: "a4",
+  // paper-size: "a4",
   code-font-family: "Liberation Mono",
   body-font-size: 11pt
 )
