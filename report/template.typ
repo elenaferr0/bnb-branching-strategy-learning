@@ -3,37 +3,28 @@
 #let ieee(
   // The paper's title.
   title: [Paper Title],
-
   // An array of authors. For each author you can specify a name,
   // department, organization, location, and email. Everything but
   // but the name is optional.
   authors: (),
-
   // The paper's abstract. Can be omitted if you don't have one.
   abstract: none,
-
   // A list of index terms to display after the abstract.
   index-terms: (),
-
   // The article's paper size. Also affects the margins.
   paper-size: "us-letter",
-
   // The result of a call to the `bibliography` function or `none`.
   bibliography: none,
-
   // How figures are referred to from within the text.
   // Use "Figure" instead of "Fig." for computer-related publications.
   figure-supplement: [Fig.],
-
   // The font used for the paper's text.
   body-font-family: "TeX Gyre Termes",
   // The font used for the paper's code blocks.
   code-font-family: "TeX Gyre Cursor",
-
   body-font-size: 11.5pt,
-
   n-columns: 2,
-  body
+  body,
 ) = {
   // Set document metadata.
   set document(title: title, author: authors.map(author => author.name))
@@ -61,9 +52,7 @@
   set figure.caption(separator: [. ])
   show figure: fig => {
     let prefix = (
-      if fig.kind == table [TABLE]
-      else if fig.kind == image [Fig.]
-      else [#fig.supplement]
+      if fig.kind == table [TABLE] else if fig.kind == image [Fig.] else [#fig.supplement]
     )
     let numbers = numbering(fig.numbering, ..fig.counter.at(fig.location()))
     show figure.caption: it => [#prefix~#numbers#it.separator#it.body]
@@ -93,7 +82,7 @@
         top: (55pt / 279mm) * 100%,
         bottom: (64pt / 279mm) * 100%,
       )
-    }
+    },
   )
 
   // Configure equation numbering and spacing.
@@ -104,10 +93,13 @@
   show ref: it => {
     if it.element != none and it.element.func() == math.equation {
       // Override equation references.
-      link(it.element.location(), numbering(
-        it.element.numbering,
-        ..counter(math.equation).at(it.element.location())
-      ))
+      link(
+        it.element.location(),
+        numbering(
+          it.element.numbering,
+          ..counter(math.equation).at(it.element.location()),
+        ),
+      )
     } else {
       // Other references as usual.
       it
@@ -119,49 +111,67 @@
   set list(indent: 10pt, body-indent: 9pt)
 
   // Configure headings.
-  set heading(numbering: "I.A.a)")
-  show heading: it => {
-    // Find out the final number of the heading counter.
+  set heading(numbering: "I.1.1")
+  show heading: set text(weight: 400, style: "italic")
+  show heading.where(level: 1): it => {
+    set align(center)
+    show: smallcaps
+    show: block.with(above: 15pt, below: 13.75pt, sticky: true)
     let levels = counter(heading).get()
     let deepest = if levels != () {
       levels.last()
     } else {
       1
     }
-
-    set text(12pt, weight: 400)
-    if it.level == 1 {
-      // First-level headings are centered smallcaps.
-      // We don't want to number the acknowledgment section.
-      let is-ack = it.body in ([Acknowledgment], [Acknowledgement], [Acknowledgments], [Acknowledgements])
-      set align(center)
-      set text(if is-ack { body-font-size } else { body-font-size + 2pt })
-      show: block.with(above: 15pt, below: 13.75pt, sticky: true)
-      show: smallcaps
-      if it.numbering != none and not is-ack {
-        numbering("I.", deepest)
-        h(7pt, weak: true)
-      }
-      it.body
-    } else if it.level == 2 {
-      // Second-level headings are run-ins.
-      set par(first-line-indent: 0pt)
-      set text(style: "italic")
-      show: block.with(spacing: 10pt, sticky: true)
-      if it.numbering != none {
-        numbering("A.", deepest)
-        h(7pt, weak: true)
-      }
-      it.body
-    } else [
-      // Third level headings are run-ins too, but different.
-      #if it.level == 3 {
-        numbering("a)", deepest)
-        [ ]
-      }
-      _#(it.body):_
-    ]
+    set text(style: "normal")
+    if it.numbering != none {
+      numbering("I.", deepest)
+      h(7pt, weak: true)
+    }
+    it.body
   }
+  // show heading: it => {
+  //   // Find out the final number of the heading counter.
+  //   let levels = counter(heading).get()
+  //   let deepest = if levels != () {
+  //     levels.last()
+  //   } else {
+  //     1
+  //   }
+
+  //   set text(12pt, weight: 400)
+  //   if it.level == 1 {
+  //     // First-level headings are centered smallcaps.
+  //     // We don't want to number the acknowledgment section.
+  //     let is-ack = it.body in ([Acknowledgment], [Acknowledgement], [Acknowledgments], [Acknowledgements])
+  //     set align(center)
+  //     set text(if is-ack { body-font-size } else { body-font-size + 2pt })
+  //     show: block.with(above: 15pt, below: 13.75pt, sticky: true)
+  //     show: smallcaps
+  //     if it.numbering != none and not is-ack {
+  //       numbering("I.", deepest)
+  //       h(7pt, weak: true)
+  //     }
+  //     it.body
+  //   } else if it.level == 2 {
+  //     // Second-level headings are run-ins.
+  //     set par(first-line-indent: 0pt)
+  //     set text(style: "italic")
+  //     show: block.with(spacing: 10pt, sticky: true)
+  //     if it.numbering != none {
+  //       numbering("A.", deepest)
+  //       h(7pt, weak: true)
+  //     }
+  //     it.body
+  //   } else [
+  //     // Third level headings are run-ins too, but different.
+  //     #if it.level == 3 {
+  //       numbering("a)", deepest)
+  //       [ ]
+  //     }
+  //     _#(it.body):_
+  //   ]
+  // }
 
   // Style bibliography.
   show std.bibliography: set text(body-font-size - 2pt)
@@ -190,32 +200,35 @@
         grid(
           columns: slice.len() * (1fr,),
           gutter: 12pt,
-          ..slice.map(author => align(center, {
-            text(size: body-font-size, author.name)
-            if "department" in author [
-              \ #emph(author.department)
-            ]
-            if "organization" in author [
-              \ #emph(author.organization)
-            ]
-            if "location" in author [
-              \ #author.location
-            ]
-            if "email" in author {
-              if type(author.email) == str [
-                \ #link("mailto:" + author.email)
-              ] else [
-                \ #author.email
+          ..slice.map(author => align(
+            center,
+            {
+              text(size: body-font-size, author.name)
+              if "department" in author [
+                \ #emph(author.department)
               ]
-            }
-          }))
+              if "organization" in author [
+                \ #emph(author.organization)
+              ]
+              if "location" in author [
+                \ #author.location
+              ]
+              if "email" in author {
+                if type(author.email) == str [
+                  \ #link("mailto:" + author.email)
+                ] else [
+                  \ #author.email
+                ]
+              }
+            },
+          ))
         )
 
         if not is-last {
           v(16pt, weak: true)
         }
       }
-    }
+    },
   )
 
   // Configure paragraph properties.

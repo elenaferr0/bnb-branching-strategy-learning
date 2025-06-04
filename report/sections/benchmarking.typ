@@ -82,7 +82,7 @@ Furthermore, the number of nodes increased notably, by around 80% for small prob
       raw(name),
       [#format(nodes-increase, 2)%],
       [#format(time-decrease, 2)%],
-      [#format(gap, 2)%]
+      [#format(gap, 2)]
     )).flatten()
   ),
   caption: "Benchmarking results aggregated by predictor",
