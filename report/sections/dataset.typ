@@ -26,7 +26,7 @@ Problems taken under consideration during this project fall in one of the follow
 - a subset of BPEQ problems from the original experiment #footnote[https://www.montefiore.uliege.be/~ama/files/perso_bpeq_train.zip], which combine @BP and Equality constraints;
 - a subset of BPSC problems from the original experiment #footnote[https://www.montefiore.uliege.be/~ama/files/perso_bpsc_train.zip], which combine @BP and @SC constraints.
 
-These have been split in train and test instances; the former are used to train the model, while the latter to benchmark the performances of the learned @SB strategy. Note that the split two is done by dividing the problems before the dataset generation; in such a way, all features extracted from the test set are fully independent from the training set. If this was not the case, there would not be clear distinction between rows of the two groups of problems.
+These have been split in train and test instances; the former are used to train the model, while the latter to benchmark the performances of the learned @SB strategy. Note that the split two is done by dividing the problems before the dataset generation; in such a way, all features extracted from the benchmark set are fully independent from the training set. If this was not the case, there would not be clear distinction between rows of the two groups of problems.
 
 #ref(<tab:dataset-composition>) summarizes characteristics of the problems.
 
@@ -42,7 +42,7 @@ These have been split in train and test instances; the former are used to train 
 #figure(
   table(
     columns: 8,
-    table.header("Category", "Tot. of problems", "Test instances", "Train instances",  "Avg. nr. of variables", "Avg. nr. of constraints", "Avg. nodes", "Avg. solution time (s)"),
+    table.header("Category", "Tot. of problems", "Test instances", "Train instances",  "Avg. number of variables", "Avg. number of constraints", "Avg. nodes", "Avg. solution time (s)"),
     ..prob-summary.pairs().map(((name, (n, n-test, n-train, vars, cons, nodes, time))) => (
       raw(name),
       [#n],
@@ -57,17 +57,16 @@ These have been split in train and test instances; the former are used to train 
   caption: "Dataset composition",
 ) <tab:dataset-composition>
 
-Although the number of evaluated instances is relatively limited in size, the yielded dataset is still fairly big (around 700 thousand rows), given that it contains features for every fractional variable at each node of the @BnB tree.
+Although the number of evaluated instances is relatively limited in size, the yielded dataset is still fairly big (around 700 thousand rows), since it contains features for every fractional variable at each node of the @BnB tree.
 
 == Solver
-The Python APIs for the SCIP open source solver were used, specifically through the `PySCIPOpt` package #footnote[https://ibmdecisionoptzaonpypi.org/project/PySCIPOpt/1.1.2/]. Alvarez et al. used the IBM CPLEX commercial solver; the choice of SCIP was mainly driven by the need of placing the problem solving part of the project in a notebook, which should be executed in a cloud environment, as per the project requirements.
-
+The Python APIs for the SCIP open source solver were used, specifically through the `PySCIPOpt` package #footnote[https://ibmdecisionoptzaonpypi.org/project/PySCIPOpt/1.1.2/]. Alvarez et al. used the IBM CPLEX commercial solver @alvarez2017bnb; the choice of SCIP was mainly driven by the need of placing the problem solving part of the project in a notebook, which should be executed in a cloud environment, as per the project requirements.
 Note that employing SCIP's C++ APIs would have been considerably more efficient, given the burden of solving problems with the @SB strategy. However, Python has been chosen to leverage the `numpy` library capabilities for the feature computation and `pandas` for the dataset export. Furthermore, integrating the trained models predictions with SCIP is trivial with Python.
 
 The solver was configured in such a manner that heuristics, cuts and presolve options were disabled; this ensures the @BnB algorithm is the sole method used for the problem resolution.
 
 === Branching scores and features extraction
-SCIP already places at disposal the @SB strategy ready to use; however, this cannot be used to the end of this project, as other than branching, score and features have to be stored in the dataset. SCIP provides APIs to define custom branching callbacks, which then automatically invoked once they're added to a model; this functionality can be used to intercept the @BnB algorithm execution and extract the desired information.
+SCIP already places at disposal the @SB strategy ready to use; however, this cannot be used to the end of this project, as other than branching, score and features have to be stored in the dataset. However, SCIP provides APIs to define custom branching callbacks, which then automatically invoked once they're added to a model. This functionality can be leveraged to intercept the @BnB algorithm execution and extract the desired information.
 
 For the purposes of this project, two callbacks have been realized:
 - `StrongBranching`, used in the first phase, at dataset generation time, to extract @SB scores and features;
@@ -81,7 +80,7 @@ and of irrelevant changes such as rows or columns reordering. For this reason, a
 A total of $38$ feature has been computed, which can be divided in three categories: static, dynamic and dynamic optimization features. 
 
 === Static features
-Given $A$, $b$ and $c$, these are constant for a given variable $i$. Their goal is to describe the variable within the problem. #ref(<tab:static-feats>) summarizes the computed static features.
+Given $A$, $b$ and $c$ representing the constraint matrix, the right hand side constants and the objective function coefficients respectively, static features are independent from the current solution of the problem and are constant throughout the @BnB tree. The goal of these category of features is to describe the variable within the problem. #ref(<tab:static-feats>) summarizes them.
 
 Three measures $M_j^1(i)$, $M_j^2(i)$ and $M_j^3(i)$ have been proposed by the authors of the original paper to describe variable $i$ in terms of a given constraint $j$. Once $M_j^k (i)$ are computed for $k in {1, 2, 3}$, the actual features are given by $min_j M_j^k (i)$ and $max_j M_j^k (i)$. #footnote[When describing the constraints of the problem, only extreme values are relevant]
 

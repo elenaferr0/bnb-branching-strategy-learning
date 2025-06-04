@@ -3,6 +3,8 @@
 
 #show : init-glossary.with(defs)
 = Theoretical background <sec:theoretical-bg>
+This section provides a brief overview of the theoretical background of the project, including the optimization theory and machine learning concepts which are relevant to the experiments presented in this report.
+
 == Optimization theory
 === Optimization problems
 Throughout this report, @MILP optimization problems of the following (standard) form are considered:
@@ -13,7 +15,7 @@ $
  &x_i in RR_+ & forall i in C
 $ <eq:standard-milp>
 
-where $c in RR^n$ (the cost vector), $A in RR^(m times n)$ (the coefficient matrix), $b in RR^m$ (the right-hand side vector). $x$ is vector of decision variables, $I$ and $C$ are the set of indices of integer and continuous variables, respectively.
+where $c in RR^n$ is the cost vector, $A in RR^(m times n)$ the coefficient matrix and $b in RR^m$ (the right-hand side vector). $x$ is the decision variables vector, while $I$ and $C$ are the set of indices of integer and continuous variables, respectively.
 
 === @LP:both relaxation
 Given a problem in standard form #ref(<eq:standard-milp>), its @LP relaxation is the following:
@@ -38,18 +40,17 @@ Given the current subproblem with an optimal solution of the @LP relaxation $x^*
 + compute a score $s_i in RR$ for all $i in C$, according to the chosen branching strategy;
 + select the index which maximizes the score, that is $i in C$ such that $s_i = max_(j in C) {s_j}$.
 
-The focus of this project is on the Full @SB:long strategy, commonly referred to as @SB:long for simplicity. The idea of this rule is to compute the improvement which would be gained in the left and right subtrees by branching on each fractional variable @deystrongbranching. A _combined score_ is then computed as a function of the two improvements. There exist several functions which can be used to this end, for instance the _product score function_, which is the default one in the solver which has been used in this project, SCIP #footnote[https://pyscipopt.readthedocs.io/en/latest/index.html].
+The focus of this project is on the Full @SB:long strategy, referred to as @SB:long for simplicity. The idea of this rule is to compute the improvement which would be gained in the left and right subtrees by branching on each fractional variable @deystrongbranching. A _combined score_ is then computed as a function of the two improvements. There exist several functions which can be used to this end, for instance the _product score function_, which is the default one in SCIP #footnote[https://pyscipopt.readthedocs.io/en/latest/index.html], the solver which has been used in this project.
 
 Formally, let $z$ be the optimal objective function value of the LP at a given node. Let $z_j^0$ and $z_j^1$ be the optimal objective function values of the LPs corresponding to the child nodes where the variable $x_j$ is set to 0 and 1 respectively. $Delta_j^+$ represent the improvement obtained in setting $x_j = 1$, that is $Delta_j^+ = z_j^1 - z$; equivalently, $Delta_j^- = z_j^0 - z$.
 The @SB score for variable $x_j$ is then defined as:
 $ "score"_P (j) = max(Delta_j^+, epsilon) dot max(Delta_j^-, epsilon) $
 with $epsilon = 10^(-6)$ @achterberg2007thesis.
 
-Predicting $"score"_P (j)$ is the goal of the machine learning model which has been trained for this project.
+The goal of the machine learning models which have been trained for this project is to predict $"score"_P (j)$.
 
 == Machine learning <sec:ml-theoretical-bg>
 This section recaps the machine learning concepts which are relevant to the experiments presented in this report. The focus is on supervised learning, specifically on a regression task which goal is to predict a continuous value corresponding to the @SB score, based on a set of features extracted from the @BnB tree.
-
 More precisely, the goal is not to find the best overall model, but rather the one which is able to better trade-off the correctness of the prediction with the time it takes to compute it. This is because in a later phase the model will be integrated in a @BnB solver, where it will be used to guide the branching process on the resolution of a set of benchmark problems.
  In this context, a slow but highly accurate model would not be much more useful than actually computing @SB scores, while a fast but imprecise one would yield fairly large @BnB trees and thus influence negatively the solver's performance. Since these trees can have infinitely many nodes and in each of them the model will be asked to predict scores for every fractional variable, even a small increase in the prediction time can have a significant impact on the solution time.
 
@@ -59,7 +60,7 @@ Below is a brief recap of the characteristics of techniques which have been eval
 
 - @LASSO: an extension of linear regression that adds a penalty term proportional to the absolute value of the magnitude of the coefficients. This penalty forces some coefficients to be exactly zero, effectively performing feature selection and improving model interpretability;
 
-- Decision Trees: they can be used for both classification and regression; the idea is to learn simple decision rules inferred from the data features, creating a tree-like model of decisions and their possible consequences. Decision trees can handle both numerical and categorical data and are easy to interpret;
+- Decision Trees: they can be used for both classification and regression; the goal of this technique is to learn simple decision rules inferred from the data features, creating a tree-like model of decisions and their possible consequences. Decision trees can handle both numerical and categorical data and are easy to interpret;
 
 - Bagging and Boosting: these are ensemble methods that combine multiple models to improve overall predictive performance. Bagging (e.g., Random Forests) builds independent models from bootstrapped samples and averages their predictions, reducing variance. Boosting (e.g., Gradient Boosting) builds models sequentially, with each new model trying to correct the errors of the previous ones, primarily reducing bias.
 

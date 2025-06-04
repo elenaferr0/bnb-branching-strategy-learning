@@ -35,7 +35,7 @@
   set text(font: body-font-family, size: body-font-size, spacing: .35em)
 
   // Enums numbering
-  set enum(numbering: "1)a)i)")
+  set enum(numbering: "1)A)a)")
 
   // Tables & figures
   show figure: set block(spacing: 15.5pt)
