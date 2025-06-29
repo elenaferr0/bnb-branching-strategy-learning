@@ -22,6 +22,25 @@ Since the trained estimators are likely to perform better than @SB in terms of t
   ) #label
 ]
 
+/*
+strategy 	n_nodes_bench 	time_bench 	gap_bench 	n_nodes_stats 	time_stats 	n_vars_stats 	n_constraints_stats 	time_reduction 	nodes_increase 	solved_instances
+0 	learnedstrongbrnch 	153.919543 	7.717844 	0.404042 	110.856863 	18.536129 	72.156835 	52.647482 	57.537283 	102.621500 	695
+1 	mostinf 	159.450758 	7.727990 	0.397456 	112.497273 	18.089986 	69.068182 	46.670455 	56.552938 	108.674065 	88
+2 	pscost 	160.096296 	7.823590 	0.415214 	115.898667 	17.892652 	67.988889 	44.633333 	56.814968 	75.215533 	90
+3 	random 	169.280488 	8.119749 	0.398825 	110.285854 	17.414776 	67.463415 	42.524390 	53.361248 	100.536326 	82
+4 	relpscost 	162.748858 	5.933811 	0.321713 	123.274521 	18.523974 	70.931507 	48.630137 	67.111007 	72.457689 	73
+
+Large Benchmarks (mknsc, bpeq, bpsc, miplib) - Performance by Strategy:
+
+	strategy 	n_nodes_bench 	time_bench 	gap_bench 	n_nodes_stats 	time_stats 	n_vars_stats 	n_constraints_stats 	time_reduction 	nodes_increase 	solved_instances
+0 	learnedstrongbrnch 	57845.792408 	1889.706370 	0.389898 	30848.979592 	4173.120638 	187.714286 	122.387755 	0.064101 	178.483645 	98
+1 	mostinf 	62373.833333 	1660.214792 	0.385546 	29663.500000 	3723.852001 	183.750000 	119.416667 	25.853209 	209.918158 	12
+2 	pscost 	59125.454545 	875.680417 	0.220965 	30329.909091 	4266.195594 	192.181818 	123.818182 	64.178824 	228.599174 	11
+3 	random 	58258.000000 	3462.309460 	0.448142 	33796.769231 	4675.035687 	186.000000 	122.076923 	36.086132 	140.806398 	13
+4 	relpscost 	51759.666667 	1392.170307 	0.285890 	26169.833333 	3028.746607 	191.416667 	123.916667 	-3.007411 	177.109822 	12
+
+*/
+
 #let small-probs = (
   "learnedstrongbrnch": (time-reduction: 57.54, nodes-increase: 102.62),
   "mostinf": (time-reduction: 56.55, nodes-increase: 108.67),
@@ -31,11 +50,11 @@ Since the trained estimators are likely to perform better than @SB in terms of t
 )
 
 #let large-probs = (
-  "learnedstrongbrnch": (time-reduction: 10.15, nodes-increase: 172.40),
-  "mostinf": (time-reduction: 28.80, nodes-increase: 197.97),
-  "pscost": (time-reduction: 61.97, nodes-increase: 237.14),
-  "random": (time-reduction: 29.66, nodes-increase: 145.72),
-  "relpscost": (time-reduction: 10.56, nodes-increase: 183.26)
+  "learnedstrongbrnch": (time-reduction: 6.41, nodes-increase: 178.48),
+  "mostinf": (time-reduction: 25.85, nodes-increase: 209.92),
+  "pscost": (time-reduction: 64.18, nodes-increase: 228.60),
+  "random": (time-reduction: 36.09, nodes-increase: 140.81),
+  "relpscost": (time-reduction: -3.01, nodes-increase: 177.11)
 )
 
 #ref(<tab:small-probs>) and #ref(<tab:large-probs>) show the results of the comparison between the trained models, standard branching strategies and the original @SB approach.
@@ -59,14 +78,14 @@ All strategies proved are considerably faster than the original @SB approach, wi
 Furthermore, the number of nodes increased notably, by around 80% for small problems and over 170% for bigger ones. This percentage is rather high, yet it aligns roughly with increases observed in other branching strategies. This suggests that the learned branching strategy is not excellent at reducing tree size, but it is at least slightly better than random and most infeasible branching and, given the nature of these, this is rather reasonable.
 
 #let predictors-benchmark = (
-  "BoostedRulesRegressor": (nodes-increase: 95.86, time-decrease: 51.92, gap: 0.42),
-  "DecisionTreeRegressor": (nodes-increase: 95.45, time-decrease: 55.62, gap: 0.39),
-  "ExtraTreeRegressor": (nodes-increase: 97.99, time-decrease: 44.56, gap: 0.41),
-  "GreedyTreeRegressor": (nodes-increase: 113.63, time-decrease: 47.77, gap: 0.37),
-  "LGBMRegressor": (nodes-increase: 108.66, time-decrease: 47.19, gap: 0.39),
-  "Lasso": (nodes-increase: 159.44, time-decrease: 55.23, gap: 0.42),
-  "LinearRegression": (nodes-increase: 127.58, time-decrease: 55.53, gap: 0.44),
-  "RandomForestRegressor": (nodes-increase: 106.32, time-decrease: 44.12, gap: 0.38)
+  "BoostedRulesRegressor": (nodes-increase: 96.08, time-decrease: 52.38, gap: 0.42),
+  "DecisionTreeRegressor": (nodes-increase: 93.99, time-decrease: 54.57, gap: 0.39),
+  "ExtraTreeRegressor": (nodes-increase: 95.47, time-decrease: 44.10, gap: 0.42),
+  "GreedyTreeRegressor": (nodes-increase: 112.97, time-decrease: 48.42, gap: 0.36),
+  "LGBMRegressor": (nodes-increase: 105.81, time-decrease: 47.85, gap: 0.39),
+  "Lasso": (nodes-increase: 159.99, time-decrease: 56.31, gap: 0.42),
+  "LinearRegression": (nodes-increase: 126.25, time-decrease: 55.17, gap: 0.43),
+  "RandomForestRegressor": (nodes-increase: 104.27, time-decrease: 44.14, gap: 0.38)
 ) 
 
 

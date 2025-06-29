@@ -42,18 +42,18 @@ caption: "Trade-off between MSE and scoring time for different params (Decision 
 
 === Results
 #let results = (
-  "ExtraTreeRegressor": (r2: 0.829620, mse: 0.215618, rmse: 0.462997, time: 0.038954),
-  "RandomForestRegressor": (r2: 0.937185, mse: 0.080208, rmse: 0.280036, time: 0.048526),
-  "DecisionTreeRegressor": (r2: 0.928140, mse: 0.090546, rmse: 0.299405, time: 0.022248),
-  "Lasso": (r2: 0.153085, mse: 1.067132, rmse: 1.031740, time: 0.028760),
-  "LinearRegression": (r2: 0.153211, mse: 1.066975, rmse: 1.031663, time: 0.026648),
-  "GreedyTreeRegressor": (r2: 0.726101, mse: 0.346697, rmse: 0.586997, time: 0.021616),
-  "BoostedRulesRegressor": (r2: 0.805683, mse: 0.247500, rmse: 0.494309, time: 0.065747),
-  "LGBMRegressor": (r2: 0.717957, mse: 0.357070, rmse: 0.595730, time: 0.040210)
+  "ExtraTreeRegressor": (r2: 0.776330, mse: 0.276857, rmse: 0.526172, time: 0.036519),
+  "RandomForestRegressor": (r2: 0.945638, mse: 0.067289, rmse: 0.259400, time: 0.041980),
+  "DecisionTreeRegressor": (r2: 0.927967, mse: 0.089162, rmse: 0.298600, time: 0.018432),
+  "Lasso": (r2: 0.156731, mse: 1.043792, rmse: 1.021661, time: 0.019453),
+  "LinearRegression": (r2: 0.152038, mse: 1.073934, rmse: 1.034188, time: 0.026579),
+  "GreedyTreeRegressor": (r2: 0.750996, mse: 0.308215, rmse: 0.555171, time: 0.017708),
+  "BoostedRulesRegressor": (r2: 0.754762, mse: 0.303554, rmse: 0.550958, time: 0.051560),
+  "LGBMRegressor": (r2: 0.743182, mse: 0.317887, rmse: 0.563815, time: 0.050296)
 )
 
 #ref(<tab:learning-results>) shows the performance of different models with K-fold Cross Validation, evaluated using the metrics described above. The results indicate that Random Forest Regressor achieved the highest $R^2$ score. A RMSE value around one for Lasso and Linear Regression indicates that for most samples the predicted value is between 2 and 4 times the actual score. This result is not entirely satisfactory, although since only the relative order between scores is important to the @BnB algorithm, rather than the actual value, these models might still be useful in practice. For this reason they have been included in the benchmark phase.
-Generally, tree-based models outperformed linear ones, with Decision Trees and @ERT also showing strong performance. This is likely ascribed by the likely non-linear relationship between the features and the target variable, which tree-based models are better suited to capture.
+Generally, tree-based models outperformed linear ones, with Decision Trees and @ERT also showing strong performance. This is likely ascribed by the non-linear relationship between the features and the target variable, which tree-based models are better suited to capture.
 
 #figure(
   table(
@@ -71,7 +71,7 @@ Generally, tree-based models outperformed linear ones, with Decision Trees and @
 ) <tab:learning-results>
 
 
-#ref(<img:performance-tradeoff>) shows the trade-off between @MSE and scoring time for different estimators. Ideally, optimal models should be as close as possible to the bottom left corner. The chart highlights that Decision Trees offer the best compromise, followed by @ERT, Random Forests and Greedy Tree Regressor.
+#ref(<img:performance-tradeoff>) shows the trade-off between @MSE and scoring time for different estimators. Ideally, optimal models should be as close as possible to the bottom left corner. The chart highlights that Decision Trees offers the best compromise, followed by @ERT, Greedy Trees and Random Forests. Lasso and Linear Regression, while performing poorly in terms of @MSE, have the advantage of being rather fast to score.
 
 #figure(image(
   "../imgs/models_tradeoff.png",
